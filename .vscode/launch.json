@@ -1,0 +1,48 @@
+{
+	"configurations": [
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - HyperLinkPlayer",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopOnEntry": false,
+			"mainClass": "CS576.finalProject.HyperLinkPlayer",
+			"args": "",
+			"projectName": "HyperLinkPlayer"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - textBox",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopOnEntry": false,
+			"mainClass": "CS576.utils.textBox",
+			"args": "",
+			"projectName": "HyperLinkPlayer"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - rgbReader",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopOnEntry": false,
+			"mainClass": "CS576.utils.rgbReader",
+			"args": "",
+			"projectName": "HyperLinkPlayer"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - MediaPlayer",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopOnEntry": false,
+			"mainClass": "CS576.finalProject.MediaPlayer",
+			"args": "",
+			"projectName": "HyperLinkPlayer"
+		}
+	]
+}
