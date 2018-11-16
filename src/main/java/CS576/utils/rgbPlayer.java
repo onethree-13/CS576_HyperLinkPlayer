@@ -51,4 +51,5 @@ public class rgbPlayer extends JPanel {
 		super.paintComponent(g);
 		g.drawImage(bi, 0, 0, this);
 	}
+
 }

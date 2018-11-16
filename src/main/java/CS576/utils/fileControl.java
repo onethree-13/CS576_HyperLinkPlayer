@@ -15,7 +15,7 @@ public class fileControl extends JPanel {
     private String filename;
 
     public fileControl() {
-        setPreferredSize(new Dimension(352, 100));
+        setPreferredSize(new Dimension(800, 80));
         path = new JTextField(16);
         open = new JButton("Open..");
         filename = new String("../AIFilm/AIFilmOne/AIFilmOne");
@@ -26,9 +26,13 @@ public class fileControl extends JPanel {
                 path.setText("");
             }
         });
-        setLayout(new GridLayout(4, 4, 10, 10));
-        add(open);
+
+        path.setPreferredSize(new Dimension(300, 30));
+        open.setPreferredSize(new Dimension(80, 30));
+        text.setPreferredSize(new Dimension(300, 30));
+
         add(path);
+        add(open);
         add(text);
     }
 

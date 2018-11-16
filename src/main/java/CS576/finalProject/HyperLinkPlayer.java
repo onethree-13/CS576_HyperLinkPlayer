@@ -23,18 +23,19 @@ public class HyperLinkPlayer {
     public static class MediaPanel extends JPanel {
         public MediaPanel() {
             rgbPlayer player1 = new rgbPlayer("../AIFilm/AIFilmOne/AIFilmOne");
-            timeControl fctrl = new timeControl();
+            timeControl tctrl = new timeControl(player1);
+            fileControl fctrl = new fileControl();
             player1.load(1);
-            // SpringLayout layout = new SpringLayout();
-            setLayout(new GridLayout(4, 4, 10, 10));
-            // layout.putConstraint(SpringLayout.WEST, fctrl, +40, SpringLayout.WEST, this);
-            // layout.putConstraint(SpringLayout.NORTH, fctrl, +40, SpringLayout.NORTH,
-            // this);
-            // layout.putConstraint(SpringLayout.WEST, player1, +40, SpringLayout.WEST,
-            // this);
-            // layout.putConstraint(SpringLayout.NORTH, player1, +160, SpringLayout.NORTH,
-            // this);
+            SpringLayout layout = new SpringLayout();
+            setLayout(layout);
+            layout.putConstraint(SpringLayout.WEST, fctrl, +40, SpringLayout.WEST, this);
+            layout.putConstraint(SpringLayout.NORTH, fctrl, +20, SpringLayout.NORTH, this);
+            layout.putConstraint(SpringLayout.WEST, tctrl, +40, SpringLayout.WEST, this);
+            layout.putConstraint(SpringLayout.NORTH, tctrl, +100, SpringLayout.NORTH, this);
+            layout.putConstraint(SpringLayout.WEST, player1, +40, SpringLayout.WEST, this);
+            layout.putConstraint(SpringLayout.NORTH, player1, +180, SpringLayout.NORTH, this);
             add(fctrl);
+            add(tctrl);
             add(player1);
         }
     }
