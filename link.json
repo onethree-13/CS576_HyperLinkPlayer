@@ -1,1 +1,20 @@
-{"links":[{"nbFrame":1,"boundary":[{"xPos":0,"yPos":0,"width":1,"height":1}],"link":{"pathName":"destPath","nbFrameOfStart":1,"nbFrameOfEnd":1}}]}
+{
+	"links": [
+		{
+			"nbFrame": 1,
+			"boundary": [
+				{
+					"xPos": 0,
+					"yPos": 0,
+					"width": 1,
+					"height": 1
+				}
+			],
+			"link": {
+				"pathName": "destPath",
+				"nbFrameOfStart": 1,
+				"nbFrameOfEnd": 1
+			}
+		}
+	]
+}
