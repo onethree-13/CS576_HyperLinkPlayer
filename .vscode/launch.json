@@ -2,6 +2,28 @@
 	"configurations": [
 		{
 			"type": "java",
+			"name": "CodeLens (Launch) - Demo",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopOnEntry": false,
+			"mainClass": "CS576.finalProject.Demo",
+			"args": "",
+			"projectName": "HyperLinkPlayer"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - HyperLinkStudio",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopOnEntry": false,
+			"mainClass": "CS576.finalProject.HyperLinkStudio",
+			"args": "",
+			"projectName": "HyperLinkPlayer"
+		},
+		{
+			"type": "java",
 			"name": "CodeLens (Launch) - HyperLinkPlayer",
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
@@ -24,12 +46,12 @@
 		},
 		{
 			"type": "java",
-			"name": "CodeLens (Launch) - rgbReader",
+			"name": "CodeLens (Launch) - RgbLoader",
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
 			"console": "internalConsole",
 			"stopOnEntry": false,
-			"mainClass": "CS576.utils.rgbReader",
+			"mainClass": "CS576.utils.RgbLoader",
 			"args": "",
 			"projectName": "HyperLinkPlayer"
 		},
