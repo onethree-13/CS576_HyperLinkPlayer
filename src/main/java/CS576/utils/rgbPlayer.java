@@ -11,39 +11,45 @@ import javax.swing.JPanel;
 
 public class rgbPlayer extends JPanel {
 
-	private BufferedImage bi;
-	private String filename;
+	private BufferedImage bi = new BufferedImage(352, 288, BufferedImage.TYPE_INT_RGB);
+	private String pathname;
 
 	public rgbPlayer(String filename) {
-		this.filename = filename;
-		bi = new BufferedImage(352, 288, BufferedImage.TYPE_INT_RGB);
+		openFile(filename);
 		setPreferredSize(new Dimension(352, 288));
 	}
 
-	public void openFile(String filename) {
-		this.filename = filename;
+	public rgbPlayer() {
+		setPreferredSize(new Dimension(352, 288));
 	}
 
-	public void load(int num) {
-		int[][][] img = new int[288][352][3];
+	public void openFile(String pathname) {
+		this.pathname = pathname;
+		play(1);
+	}
+
+	public void play(int num) {
+		byte[] data = new byte[288 * 352 * 3];
 		try {
-			System.out.println(filename + String.format("%04d", num) + ".rgb");
-			FileInputStream fis = new FileInputStream(filename + String.format("%04d", num) + ".rgb");
-			for (int rgb = 0; rgb < 3; rgb++)
-				for (int y = 0; y < 288; y++)
-					for (int x = 0; x < 352; x++)
-						img[y][x][rgb] = fis.read() & 0xff;
+			FileInputStream fis = new FileInputStream(pathname + String.format("%04d", num) + ".rgb");
+			fis.read(data);
 			fis.close();
 		} catch (IOException e) {
-			System.out.println("error: No such file.");
+			System.out.println("cannot play rgb file:" + pathname + num);
 		}
 
 		for (int y = 0; y < 288; y++) {
 			for (int x = 0; x < 352; x++) {
-				Color col = new Color(img[y][x][0], img[y][x][1], img[y][x][2]);
-				bi.setRGB(x, y, col.getRGB());
+				try {
+					Color col = new Color((int) data[x + 352 * y] & 0xFF, (int) data[x + 352 * y + 288 * 352] & 0xFF,
+							(int) data[x + 352 * y + 288 * 352 * 2] & 0xFF);
+					bi.setRGB(x, y, col.getRGB());
+				} catch (IllegalArgumentException e) {
+					System.out.println(e);
+				}
 			}
 		}
+		repaint();
 	}
 
 	@Override

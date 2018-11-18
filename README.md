@@ -1,2 +1,20 @@
 # CS576_HyperLinkPlayer
-CS576 final project
+### Compile & Run
+
+```bash
+$ mvn install
+$ java -jar target/HyperLinkPlayer.jar
+```
+
+
+
+### Status
+
+Basic media player is done. 
+
+
+
+### Next
+
+Add hyperlink interface
+
