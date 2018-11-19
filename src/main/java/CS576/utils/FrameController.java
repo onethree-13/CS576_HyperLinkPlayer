@@ -1,8 +1,12 @@
 package CS576.utils;
 
 import java.awt.image.BufferedImage;
+
 import org.bytedeco.javacv.Java2DFrameUtils;
+import org.bytedeco.javacpp.opencv_imgproc;
 import static org.bytedeco.javacpp.opencv_core.Mat;
+import static org.bytedeco.javacpp.opencv_core.Size;
+
 
 public class FrameController {
 
@@ -12,18 +16,22 @@ public class FrameController {
 	private String pathName;
     private RgbReader reader;
 
+    private BufferedImage curImage;
+
 	public FrameController() {
 		this.pathName = null;
         reader = null;
+        curImage = null;
 	}
 
 	public FrameController(String pathName) throws Exception {
-		setPathName(pathName);
+        setPathName(pathName);
 	}
 
 	public void setPathName(String pathName) throws Exception{
 		this.pathName = pathName;
         this.reader = new RgbReader(pathName, DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT);
+        curImage = null;
 	}
 
 	public String getPathName() {
@@ -44,6 +52,22 @@ public class FrameController {
 
     public BufferedImage getFrameImage(int nbFrame) throws Exception {
         Mat mat = getFrameMat(nbFrame);
-        return Java2DFrameUtils.toBufferedImage(mat);
+        curImage = Java2DFrameUtils.toBufferedImage(mat);
+        
+        return curImage;
+    }
+
+    public Mat getFrameMat(int nbFrame, int width, int height) throws Exception {
+        Mat img = reader.getFrame(nbFrame);
+        opencv_imgproc.resize(img, img, new Size(width, height));
+        
+        return img;
+    }
+
+    public BufferedImage getFrameImage(int nbFrame, int width, int height) throws Exception {
+        Mat mat = getFrameMat(nbFrame, width, height);
+        curImage = Java2DFrameUtils.toBufferedImage(mat);
+        
+        return curImage;
     }
 }

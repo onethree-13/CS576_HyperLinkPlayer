@@ -3,8 +3,13 @@ package CS576.finalProject;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JButton;
@@ -15,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -23,7 +29,7 @@ import javax.swing.event.ChangeListener;
 import CS576.utils.ImagePanel;
 import CS576.utils.FrameController;
 
-public class HyperLinkAuthor extends JFrame implements ChangeListener {
+public class HyperLinkAuthor extends JFrame implements ChangeListener, MouseMotionListener {
 
     private JPanel contentPane;
     
@@ -44,6 +50,17 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
     private JSlider sliderPrimary;
     private JSlider sliderSecondary;
 
+    private JLabel lblPrimaryLabel;
+    private JLabel lblSecondaryLabel;
+
+    private Boolean bPrimaryDragged;
+    private Boolean bSecondaryDragged;
+
+    private Point ptPrimary;
+    private Point ptSecondary;
+
+    private Rectangle rectPrimary;
+    private Rectangle rectSecondary;
 
 	/**
 	 * Create the frame.
@@ -75,7 +92,16 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
 
 		sliderPrimary = new JSlider();
         sliderSecondary = new JSlider();
-        
+
+        lblPrimaryLabel = new JLabel();
+        lblSecondaryLabel = new JLabel();
+
+        ptPrimary = new Point();
+        ptSecondary = new Point();
+
+        rectPrimary = new Rectangle();
+        rectSecondary = new Rectangle();
+                
         InitializeFrame();
     }
 
@@ -123,13 +149,23 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
 		sliderPrimary.setPaintLabels(true);
         sliderPrimary.setPaintTicks(true);
         sliderPrimary.addChangeListener(this);
+        sliderPrimary.setValue(0);
         contentPane.add(sliderPrimary);
 
         sliderSecondary.setPaintTicks(true);
 		sliderSecondary.setPaintLabels(true);
         sliderSecondary.setBounds(540, 419, 352, 26);
         sliderSecondary.addChangeListener(this);
+        sliderSecondary.setValue(0);
         contentPane.add(sliderSecondary);
+
+        lblPrimaryLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        lblPrimaryLabel.setBounds(100, 450, 352, 16);
+        contentPane.add(lblPrimaryLabel);
+
+        lblSecondaryLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        lblSecondaryLabel.setBounds(540, 450, 352, 16);
+        contentPane.add(lblSecondaryLabel);
 
         // ActionListener
         btnImportPrimary.addActionListener(new ActionListener() {
@@ -141,10 +177,12 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
                 if (JFileChooser.APPROVE_OPTION == returnVal) {
                     try {
                         primaryCtl = new FrameController(fc.getSelectedFile().toString());                    
-                        panelPrimary.setImage(primaryCtl.getFrameImage(0));
+                        panelPrimary.setImage(primaryCtl.getFrameImage(0, panelPrimary.getWidth(), panelSecondary.getHeight()));
 
                         sliderPrimary.setMinimum(0);
                         sliderPrimary.setMaximum(primaryCtl.getTotalFrameCnt() - 1);                        
+
+                        lblPrimaryLabel.setText("1 th / " + primaryCtl.getTotalFrameCnt() + " Total");
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         System.out.println(ex.getMessage());
@@ -162,11 +200,13 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
 
                 if (JFileChooser.APPROVE_OPTION == returnVal) {
                     try {
-                        secondaryCtl = new FrameController(fc.getSelectedFile().toString());                    
-                        panelSecondary.setImage(secondaryCtl.getFrameImage(0));
+                        secondaryCtl = new FrameController(fc.getSelectedFile().toString());
+                        panelSecondary.setImage(secondaryCtl.getFrameImage(0, panelSecondary.getWidth(), panelSecondary.getHeight()));
 
                         sliderSecondary.setMinimum(0);
                         sliderSecondary.setMaximum(secondaryCtl.getTotalFrameCnt() - 1);
+
+                        lblSecondaryLabel.setText("1 th / " + secondaryCtl.getTotalFrameCnt() + " Total");
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         System.out.println(ex.getMessage());
@@ -189,15 +229,23 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
         btnSaveFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
-		});
+        });
+        
+        panelPrimary.addMouseMotionListener(this);
+        panelSecondary.addMouseMotionListener(this);
+
+        bPrimaryDragged = false;
+        bSecondaryDragged = false;
     }
 
 	public void stateChanged(ChangeEvent e) {
         if ((JSlider) e.getSource() == sliderPrimary) {
             if (null == primaryCtl) return;
             try {
-                BufferedImage image = primaryCtl.getFrameImage(sliderPrimary.getValue());
+                lblPrimaryLabel.setText((sliderPrimary.getValue() + 1) + " th / " + primaryCtl.getTotalFrameCnt() + " Total");
+                BufferedImage image = primaryCtl.getFrameImage(sliderPrimary.getValue(), panelPrimary.getWidth(), panelPrimary.getHeight());
                 panelPrimary.setImage(image);
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.out.println(ex.getMessage());
@@ -206,7 +254,8 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
         } else if ((JSlider) e.getSource() == sliderSecondary) {
             if (null == secondaryCtl) return;
             try {
-                BufferedImage image = secondaryCtl.getFrameImage(sliderSecondary.getValue());
+                lblSecondaryLabel.setText((sliderSecondary.getValue() + 1) + " th / " + secondaryCtl.getTotalFrameCnt() + " Total");
+                BufferedImage image = secondaryCtl.getFrameImage(sliderSecondary.getValue(), panelSecondary.getWidth(), panelSecondary.getHeight());
                 panelSecondary.setImage(image);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -214,6 +263,94 @@ public class HyperLinkAuthor extends JFrame implements ChangeListener {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public void mouseMoved(MouseEvent e) {
+        if (e.getComponent().getClass().getName() == "CS576.utils.ImagePanel") {
+            if ((ImagePanel)e.getSource() == panelPrimary && bPrimaryDragged) {
+                mouseDragged(e);
+                bPrimaryDragged = false;
+            } else if ((ImagePanel)e.getSource() == panelSecondary && bSecondaryDragged) {
+                mouseDragged(e);
+                bSecondaryDragged = false;
+            }
+        }
+        System.out.println("Mouse Moved"
+        + " (" + e.getX() + "," + e.getY() + ")"
+        + " detected on "
+        + e.getComponent().getClass().getName());
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        if (e.getComponent().getClass().getName() == "CS576.utils.ImagePanel") {
+            ImagePanel panel = null;
+            BufferedImage img = null;
+            Boolean bDragged = false;
+            Rectangle rect = null;
+            Point ptFrom = null;
+            Point ptTo = new Point(e.getX(), e.getY());
+
+            try {
+                if ((ImagePanel)e.getSource() == panelPrimary) {
+                    if (null == primaryCtl) return;
+
+                    panel = panelPrimary;
+                    img = primaryCtl.getFrameImage(primaryCtl.getCurFrameNum(), panelPrimary.getWidth(), panelPrimary.getHeight());
+                    rect = rectPrimary;
+                    ptFrom = ptPrimary;
+                    if (!bPrimaryDragged) {
+                        ptPrimary.setLocation(e.getX(), e.getY());
+                        bPrimaryDragged = true;
+                    }
+                } else if ((ImagePanel)e.getSource() == panelSecondary) {
+                    if (null != secondaryCtl) return;
+
+                    panel = panelSecondary;
+                    img = secondaryCtl.getFrameImage(secondaryCtl.getCurFrameNum(), panelSecondary.getWidth(), panelSecondary.getHeight());
+                    rect = rectSecondary;
+                    ptFrom = ptSecondary;
+                    if (!bSecondaryDragged) {
+                        ptSecondary.setLocation(e.getX(), e.getY());
+                        bSecondaryDragged = true;
+                    }
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                System.out.println(ex.getMessage());
+                ex.printStackTrace();
+            }
+
+            if (ptFrom.x < ptTo.x) {
+                if (ptFrom.y < ptTo.y) {
+                    rect.setLocation(ptFrom);
+                    rect.setSize(ptTo.x - ptFrom.x, ptTo.y - ptFrom.y);
+                } else {
+                    rect.setLocation(ptFrom.x, ptTo.y);
+                    rect.setSize(ptTo.x - ptFrom.x, ptFrom.y - ptTo.y);
+                }
+            } else {
+                if (ptFrom.y < ptTo.y) {
+                    rect.setLocation(ptTo.x, ptFrom.y);
+                    rect.setSize(ptFrom.x - ptTo.x, ptTo.y - ptFrom.y);
+                } else {
+                    rect.setLocation(ptTo);
+                    rect.setSize(ptFrom.x - ptTo.x, ptFrom.y - ptTo.y);
+                }
+            }
+
+            Graphics graph = img.getGraphics();
+            graph.setColor(Color.CYAN);
+            graph.drawRect(rect.x, rect.y, rect.width, rect.height);
+            graph.dispose();
+
+            panel.setImage(img);
+        }
+
+        System.out.println("Mouse Dragged"
+        + " (" + e.getX() + "," + e.getY() + ")"
+        + " detected on "
+        
+        + e.getComponent().getClass().getName());
     }
     
     /**

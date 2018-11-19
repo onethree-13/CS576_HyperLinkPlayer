@@ -2,7 +2,6 @@ package CS576.utils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
