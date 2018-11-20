@@ -7,7 +7,6 @@ import org.bytedeco.javacpp.opencv_imgproc;
 import static org.bytedeco.javacpp.opencv_core.Mat;
 import static org.bytedeco.javacpp.opencv_core.Size;
 
-
 public class FrameController {
 
 	private static final int DEFAULT_FRAME_WIDTH = 352;

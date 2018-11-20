@@ -35,12 +35,12 @@
 		},
 		{
 			"type": "java",
-			"name": "CodeLens (Launch) - HyperLinkStudio",
+			"name": "CodeLens (Launch) - HyperLinkAuthor",
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
 			"console": "internalConsole",
 			"stopOnEntry": false,
-			"mainClass": "CS576.finalProject.HyperLinkStudio",
+			"mainClass": "CS576.finalProject.HyperLinkAuthor",
 			"args": "",
 			"projectName": "HyperLinkPlayer"
 		},
