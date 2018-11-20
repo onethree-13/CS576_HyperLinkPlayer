@@ -25,7 +25,7 @@ public class RgbReader {
     private ArrayList<String> frameNames = null;
     private Mat curFrame;
 
-    private int width;  // Frame width
+    private int width; // Frame width
     private int height; // Frame height
 
     public RgbReader(String pathName, int width, int height) throws Exception {
@@ -40,8 +40,8 @@ public class RgbReader {
             throw new Exception(pathName + "is not directory. The input path should be a directory.");
         }
 
-        // Retrieve .rgb files from 
-        String[] fileList  = f.list();
+        // Retrieve .rgb files from
+        String[] fileList = f.list();
         frameNames = new ArrayList<String>();
         for (int i = 0; i < fileList.length; i++) {
             if (fileList[i].endsWith(".rgb")) {
@@ -70,14 +70,19 @@ public class RgbReader {
 
     // Retrieve Mat of frame by number of frame
     public Mat getFrame(int nbFrame) throws Exception {
-        if (nbFrame == this.nbCurFrame) return curFrame.clone();
+        if (nbFrame == this.nbCurFrame)
+            return curFrame.clone();
 
         Mat rgbImage = new Mat(height, width, CV_8UC3); // Generate 3 channels matrix
 
+        File file = null;
         FileInputStream fis = null;
         try {
-            fis = new FileInputStream(pathName + "/" + frameNames.get(nbFrame));
-            byte[] buf = fis.readAllBytes();
+            file = new File(pathName + "/" + frameNames.get(nbFrame));
+            fis = new FileInputStream(file);
+            byte[] buf = new byte[(int) file.length()];
+            fis.read(buf);
+            fis.close();
             byte[] imgBuffer = new byte[buf.length];
 
             int R = 0, G = width * height, B = width * height * 2;
@@ -92,7 +97,7 @@ public class RgbReader {
 
             curFrame = rgbImage.clone();
             nbCurFrame = nbFrame;
-            
+
         } catch (FileNotFoundException e) {
             System.out.println("Can't find file '" + frameNames.get(nbFrame) + "'.");
             throw e;
@@ -102,7 +107,7 @@ public class RgbReader {
 
         return rgbImage;
     }
-    
+
     public static void main(String[] args) throws Exception {
         CanvasFrame frame = new CanvasFrame("Some Title", CanvasFrame.getDefaultGamma());
 
