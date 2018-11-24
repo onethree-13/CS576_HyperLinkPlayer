@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
@@ -14,28 +16,36 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionListener {
+public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionListener, Runnable {
 
     public static final int PANEL_DEFAULT_WIDTH = 366;
     public static final int PANEL_DEFAULT_HEIGHT = 385;
 
-    ImagePanel panel;
-    JSlider slider;
-    JLabel lblFrameStr;
+    private ImagePanel panel;
+    private JSlider slider;
+    private JLabel lblFrameStr;
     
-    JButton btnPlay;
-    JButton btnStop;
+    private JButton btnPlay;
+    private JButton btnStop;
 
-    String pathName;
+    private String pathName;
     
     private FrameController frameCtl;
-    private Boolean bDragged;
     private Point pt;
     private Rectangle rect;
+
+    private Boolean bDragged;
+    private Boolean bPlayed;
+
+    private Thread t;
+
+    private int nbCurFrame;
+
     
 	/**
 	 * Create the panel.
@@ -83,18 +93,89 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         btnStop.setText("Stop");
 		btnStop.setBounds(200, 354, 117, 29);
         add(btnStop);
+
+        bDragged = false;
+        bPlayed = false;
+
+        nbCurFrame = 0;
         
         panel.addMouseMotionListener(this);
 
-        bDragged = false;
+        t = new Thread(this);
+
+        // ActionListener
+        btnPlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+                if (!isLoaded()) {
+                    return;
+                }
+
+                if (bPlayed) return;
+
+                bPlayed = true;
+                
+                // Runs outside of the Swing UI thread
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (bPlayed) {
+                            // Runs inside of the Swing UI thread
+
+                            if (nbCurFrame + 1 == frameCtl.getTotalFrameCnt()) {
+                                bPlayed = false;
+                                break;
+                            } 
+                            try {
+                                if (0 == nbCurFrame % 3) {
+                                    Thread.sleep(34);
+                                } else {
+                                    Thread.sleep(33);
+                                }
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        slider.setValue(nbCurFrame + 1);
+                                        //updateImage(nbFrame + 1);
+                                    } catch (Exception e) {
+                                        System.out.println(e.getMessage());
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            });
+                        }
+                
+                        System.out.println("Thread end "+Thread.currentThread().getName());
+                    }
+
+                    
+                }).start();
+			}
+        });
+
+        btnStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+                bPlayed = false;
+
+			}
+        });
+
+        
     }
 
+    @Override
     public void stateChanged(ChangeEvent e) {
         if ((JSlider) e.getSource() == slider) {
             if (null == frameCtl) return;
             try {
-                lblFrameStr.setText((slider.getValue() + 1) + " th / " + frameCtl.getTotalFrameCnt() + " Total");
-                BufferedImage image = frameCtl.getFrameImage(slider.getValue(), panel.getWidth(), panel.getHeight());
+                nbCurFrame = slider.getValue();
+                lblFrameStr.setText((nbCurFrame + 1) + " th / " + frameCtl.getTotalFrameCnt() + " Total");
+                BufferedImage image = frameCtl.getFrameImage(nbCurFrame, panel.getWidth(), panel.getHeight());
                 panel.setImage(image);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -104,6 +185,7 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         }
     }
 
+    @Override
     public void mouseMoved(MouseEvent e) {
         System.out.println("Mouse Moved"
             + " (" + e.getX() + "," + e.getY() + ")"
@@ -116,6 +198,7 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         }
     }
 
+    @Override
     public void mouseDragged(MouseEvent e) {
         System.out.println("Mouse Dragged"
             + " (" + e.getX() + "," + e.getY() + ")"
@@ -167,6 +250,11 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         }
     }
 
+    @Override
+    public void run() {
+        
+    }
+
     public int loadImages(String pathName) throws Exception {
         this.pathName = pathName;
 
@@ -205,5 +293,10 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
 
     public int getCurFrameNum() {
         return frameCtl.getCurFrameNum();
+    }
+
+    private void updateImage(int nbFrame) throws Exception {
+        BufferedImage image = frameCtl.getFrameImage(nbFrame, panel.getWidth(), panel.getHeight());
+        panel.setImage(image);
     }
 }
