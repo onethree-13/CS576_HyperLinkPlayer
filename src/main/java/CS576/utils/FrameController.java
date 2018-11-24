@@ -4,24 +4,25 @@ import java.awt.image.BufferedImage;
 
 import org.bytedeco.javacv.Java2DFrameUtils;
 import org.bytedeco.javacpp.opencv_imgproc;
+
 import static org.bytedeco.javacpp.opencv_core.Mat;
 import static org.bytedeco.javacpp.opencv_core.Size;
 
 public class FrameController {
 
 	private static final int DEFAULT_FRAME_WIDTH = 352;
-	private static final int DEFAULT_FRAME_HEIGHT = 288;
-	
-	private String pathName;
+    private static final int DEFAULT_FRAME_HEIGHT = 288;
+    
+    private String pathName;
     private RgbReader reader;
-
+    
     private BufferedImage curImage;
 
 	public FrameController() {
 		this.pathName = null;
         reader = null;
         curImage = null;
-	}
+    }
 
 	public FrameController(String pathName) throws Exception {
         setPathName(pathName);

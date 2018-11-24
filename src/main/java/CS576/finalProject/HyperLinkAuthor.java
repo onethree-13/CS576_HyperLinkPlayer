@@ -22,9 +22,11 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.google.gson.Gson;
 
+import CS576.utils.AuthorPlayer;
 import CS576.utils.ImagePlayer;
 import CS576.utils.LinkInfoVO;
 
@@ -40,8 +42,8 @@ public class HyperLinkAuthor extends JFrame {
     private JButton btnConnectVideo;
     private JButton btnSaveFile;
 
-    private ImagePlayer primaryPlayer;
-    private ImagePlayer secondaryPlayer;
+    private AuthorPlayer primaryPlayer;
+    private AuthorPlayer secondaryPlayer;
 
     JButton btnSetFrom;
     JButton btnSetTo;
@@ -78,8 +80,8 @@ public class HyperLinkAuthor extends JFrame {
 		btnConnectVideo = new JButton();
         btnSaveFile = new JButton();
         
-		primaryPlayer = new ImagePlayer();
-        secondaryPlayer = new ImagePlayer();
+		primaryPlayer = new AuthorPlayer();
+        secondaryPlayer = new AuthorPlayer();
 
         JLabel lblFrameFrom = new JLabel("Frame From");
         lblFrameFrom.setHorizontalAlignment(SwingConstants.CENTER);
@@ -211,8 +213,20 @@ public class HyperLinkAuthor extends JFrame {
                     return;
                 }
 
+                Rectangle rect = primaryPlayer.getDraggedRectangle();
+                if (0 == rect.width || 0 == rect.height) {
+                    JOptionPane.showMessageDialog(null, "Drag link area before create a hyperlink.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect);
+                if (0 < hm.size())
+                    return;
+
                 String linkName = JOptionPane.showInputDialog("Link name");
                 if (null == linkName || "" == linkName) return;
+
+                
                 
                 try {
                     LinkInfoVO linkInfo = genLinkInfo(linkName);

@@ -8,8 +8,14 @@ import javax.swing.JPanel;
 public class ImagePanel extends JPanel {
 
 	private BufferedImage image;
+
+	private ImagePanelEventListener listener;
 	
 	public void setImage(BufferedImage image) {
+		if (null != listener) {
+			listener.beforeDrawImage(image);
+		}
+
 		this.image = image;
 		repaint();
 	}
@@ -22,4 +28,11 @@ public class ImagePanel extends JPanel {
 		}
 	}
 
+	public void setImagePanelEventListener(ImagePanelEventListener listener) {
+		this.listener = listener;
+	}
+
+	public void removeImagePanelEventListener() {
+		listener = null;
+	}
 }

@@ -8,11 +8,7 @@ import java.util.Collections;
 
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacpp.*;
-import org.bytedeco.javacpp.indexer.*;
 import static org.bytedeco.javacpp.opencv_core.*;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_calib3d.*;
-import static org.bytedeco.javacpp.opencv_objdetect.*;
 
 public class RgbReader {
 

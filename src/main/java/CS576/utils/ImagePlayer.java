@@ -1,10 +1,6 @@
 package CS576.utils;
 
 import java.awt.Color;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Graphics;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,7 +17,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionListener, Runnable {
+public class ImagePlayer extends JPanel implements ChangeListener {
 
     public static final int PANEL_DEFAULT_WIDTH = 366;
     public static final int PANEL_DEFAULT_HEIGHT = 385;
@@ -36,18 +32,12 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
     private String pathName;
     
     private FrameController frameCtl;
-    private Point pt;
-    private Rectangle rect;
-
-    private Boolean bDragged;
+    
     private Boolean bPlayed;
-
-    private Thread t;
 
     private int nbCurFrame;
 
-    
-	/**
+    /**
 	 * Create the panel.
 	 */
 	public ImagePlayer() {
@@ -62,16 +52,11 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
 
         pathName = null;
         frameCtl = null;
-        pt = new Point();
-        rect = new Rectangle();
-
-        Initialize();
     }
     
-    void Initialize() {
+    public void Initialize() {
         panel.setBorder(new LineBorder(new Color(0, 0, 0)));
         panel.setBounds(6, 6, 352, 288);
-        panel.addMouseMotionListener(this);
         add(panel);
         
         slider.setValue(0);
@@ -94,15 +79,10 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
 		btnStop.setBounds(200, 354, 117, 29);
         add(btnStop);
 
-        bDragged = false;
         bPlayed = false;
 
         nbCurFrame = 0;
         
-        panel.addMouseMotionListener(this);
-
-        t = new Thread(this);
-
         // ActionListener
         btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -140,7 +120,6 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
                                 public void run() {
                                     try {
                                         slider.setValue(nbCurFrame + 1);
-                                        //updateImage(nbFrame + 1);
                                     } catch (Exception e) {
                                         System.out.println(e.getMessage());
                                         e.printStackTrace();
@@ -164,8 +143,6 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
 
 			}
         });
-
-        
     }
 
     @Override
@@ -185,76 +162,6 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         }
     }
 
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        System.out.println("Mouse Moved"
-            + " (" + e.getX() + "," + e.getY() + ")"
-            + " detected on "
-            + e.getComponent().getClass().getName());
-
-        if ((ImagePanel)e.getSource() == panel && bDragged) {
-            mouseDragged(e);
-            bDragged = false;
-        }
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        System.out.println("Mouse Dragged"
-            + " (" + e.getX() + "," + e.getY() + ")"
-            + " detected on "
-            + e.getComponent().getClass().getName());
-
-        if ((ImagePanel)e.getSource() == panel) {
-            if (null == frameCtl) return;
-
-            try {
-                Point ptFrom = pt;
-                Point ptTo = new Point(e.getX(), e.getY());
-                
-                BufferedImage img = frameCtl.getFrameImage(frameCtl.getCurFrameNum(), panel.getWidth(), panel.getHeight());
-                if (!bDragged) {
-                    pt.setLocation(e.getX(), e.getY());
-                    bDragged = true;
-                }
-
-                if (ptFrom.x < ptTo.x) {
-                    if (ptFrom.y < ptTo.y) {
-                        rect.setLocation(ptFrom);
-                        rect.setSize(ptTo.x - ptFrom.x, ptTo.y - ptFrom.y);
-                    } else {
-                        rect.setLocation(ptFrom.x, ptTo.y);
-                        rect.setSize(ptTo.x - ptFrom.x, ptFrom.y - ptTo.y);
-                    }
-                } else {
-                    if (ptFrom.y < ptTo.y) {
-                        rect.setLocation(ptTo.x, ptFrom.y);
-                        rect.setSize(ptFrom.x - ptTo.x, ptTo.y - ptFrom.y);
-                    } else {
-                        rect.setLocation(ptTo);
-                        rect.setSize(ptFrom.x - ptTo.x, ptFrom.y - ptTo.y);
-                    }
-                }
-
-                Graphics graph = img.getGraphics();
-                graph.setColor(Color.CYAN);
-                graph.drawRect(rect.x, rect.y, rect.width, rect.height);
-                graph.dispose();
-
-                panel.setImage(img);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                System.out.println(ex.getMessage());
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void run() {
-        
-    }
-
     public int loadImages(String pathName) throws Exception {
         this.pathName = pathName;
 
@@ -263,8 +170,9 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         try {
             frameCtl = new FrameController(pathName); 
             nbTotalFrame = frameCtl.getTotalFrameCnt();
-            
-            panel.setImage(frameCtl.getFrameImage(0, panel.getWidth(), panel.getHeight()));
+            BufferedImage image = frameCtl.getFrameImage(0, panel.getWidth(), panel.getHeight());
+
+            panel.setImage(image);
 
             slider.setMinimum(0);
             slider.setMaximum(nbTotalFrame - 1);
@@ -287,16 +195,39 @@ public class ImagePlayer extends JPanel implements ChangeListener, MouseMotionLi
         return pathName;
     }
 
-    public Rectangle getDraggedRectangle() {
-        return rect;
+    public ImagePanel getPanel() {
+        return panel;
+    }
+
+    public FrameController getFrameController() {
+        return frameCtl;
     }
 
     public int getCurFrameNum() {
         return frameCtl.getCurFrameNum();
     }
 
-    private void updateImage(int nbFrame) throws Exception {
-        BufferedImage image = frameCtl.getFrameImage(nbFrame, panel.getWidth(), panel.getHeight());
+    public void setMouseMotionListener(MouseMotionListener listener) {
+        MouseMotionListener[] listeners = panel.getMouseMotionListeners();
+        if (0 < listeners.length) {
+            for (MouseMotionListener l : listeners) {
+                panel.removeMouseMotionListener(l);
+            }
+        }
+        panel.addMouseMotionListener(listener);
+    }
+
+    public void removeMouseMotionListener() {
+        MouseMotionListener[] listeners = panel.getMouseMotionListeners();
+        if (0 < listeners.length) {
+            for (MouseMotionListener l : listeners) {
+                panel.removeMouseMotionListener(l);
+            }
+        }
+    }
+
+    public void updateImage() throws Exception {
+        BufferedImage image = frameCtl.getFrameImage(nbCurFrame, panel.getWidth(), panel.getHeight());
         panel.setImage(image);
     }
 }
