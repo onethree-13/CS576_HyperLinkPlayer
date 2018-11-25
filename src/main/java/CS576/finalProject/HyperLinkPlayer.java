@@ -47,6 +47,7 @@ public class HyperLinkPlayer {
 
     public static void main(String[] args) {
         LinkInfoMap json = new LinkInfoMap("link.json");
+        json.LinkInfoMap2Json("test.json");
         json.print();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

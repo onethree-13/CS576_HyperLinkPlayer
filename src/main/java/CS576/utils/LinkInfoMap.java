@@ -7,7 +7,7 @@ import java.util.*;
 
 public class LinkInfoMap {
 
-	private HashMap<Integer, LinkInfo> hmap = new HashMap<Integer, LinkInfo>();
+	private HashMap<Integer, List<LinkInfo>> hmap = new HashMap<Integer, List<LinkInfo>>();
 
 	public static JSONObject parseJSONFile(String filename) {
 		try {
@@ -20,42 +20,67 @@ public class LinkInfoMap {
 	}
 
 	public void print() {
-		for (LinkInfo link : hmap.values()) {
-			System.out.println(
-					"object: " + link.object + ", oriPathName" + link.oriPathName + ", oriFrameNum" + link.oriFrameNum);
+		JSONObject links = new JSONObject(hmap);
+		System.out.println(links);
+	}
+
+	public void LinkInfoMap2Json(String filename) {
+		JSONObject links = new JSONObject(hmap);
+		try (PrintWriter out = new PrintWriter(filename)) {
+			out.println(links.toString());
+		} catch (Exception e) {
+			System.out.println("Error: cannot write to json.");
 		}
 	}
 
-	public void json2LinkInfo(String filename) {
+	public void Json2LinkInfoMap(String filename) {
 		JSONObject obj = parseJSONFile(filename);
 		if (obj == null)
 			return;
 		hmap.clear();
-		JSONArray links = obj.getJSONArray("links");
-		for (int i = 0; i < links.length(); i++) {
-			LinkInfo linkInfo = new LinkInfo();
-			JSONObject link = links.getJSONObject(i);
-			linkInfo.object = link.getString("object");
-			linkInfo.oriPathName = link.getString("oriPathName");
-			linkInfo.oriFrameNum = link.getInt("oriFrameNum");
-			linkInfo.destPathName = link.getString("destPathName");
-			linkInfo.destFrameNum = link.getInt("destFrameNum");
-			linkInfo.boundaryX = link.getInt("boundaryX");
-			linkInfo.boundaryY = link.getInt("boundaryY");
-			linkInfo.boundaryWidth = link.getInt("boundaryWidth");
-			linkInfo.boundaryHeight = link.getInt("boundaryHeight");
-			hmap.put(linkInfo.oriFrameNum, linkInfo);
+		Iterator<String> keysItr = obj.keys();
+		while (keysItr.hasNext()) {
+			String key = keysItr.next();
+			JSONArray links = obj.getJSONArray(key);
+			for (int i = 0; i < links.length(); i++) {
+				LinkInfo linkInfo = new LinkInfo();
+				JSONObject link = links.getJSONObject(i);
+				linkInfo.setObject(link.getString("object"));
+				linkInfo.setOriPathName(link.getString("oriPathName"));
+				linkInfo.setOriFrameNum(link.getInt("oriFrameNum"));
+				linkInfo.setDestPathName(link.getString("destPathName"));
+				linkInfo.setDestFrameNum(link.getInt("destFrameNum"));
+				linkInfo.setBoundaryX(link.getInt("boundaryX"));
+				linkInfo.setBoundaryY(link.getInt("boundaryY"));
+				linkInfo.setBoundaryWidth(link.getInt("boundaryWidth"));
+				linkInfo.setBoundaryHeight(link.getInt("boundaryHeight"));
+				if (hmap.containsKey(linkInfo.getOriFrameNum()))
+					hmap.get(linkInfo.getOriFrameNum()).add(linkInfo);
+				else
+					hmap.put(linkInfo.getOriFrameNum(), new ArrayList<LinkInfo>() {
+						{
+							add(linkInfo);
+						}
+					});
+			}
 		}
 	}
 
 	public LinkInfoMap(String filename) {
-		json2LinkInfo(filename);
+		Json2LinkInfoMap(filename);
 	}
 
 	public LinkInfoMap() {
 	}
 
-	public void addLink(LinkInfo link) {
-		hmap.put(link.oriFrameNum, link);
+	public void addLink(LinkInfo linkInfo) {
+		if (hmap.containsKey(linkInfo.getOriFrameNum()))
+			hmap.get(linkInfo.getOriFrameNum()).add(linkInfo);
+		else
+			hmap.put(linkInfo.getOriFrameNum(), new ArrayList<LinkInfo>() {
+				{
+					add(linkInfo);
+				}
+			});
 	}
 }

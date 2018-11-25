@@ -2,17 +2,6 @@
 	"configurations": [
 		{
 			"type": "java",
-			"name": "CodeLens (Launch) - jsonIO",
-			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"console": "internalConsole",
-			"stopOnEntry": false,
-			"mainClass": "CS576.utils.jsonIO",
-			"args": "",
-			"projectName": "HyperLinkPlayer"
-		},
-		{
-			"type": "java",
 			"name": "CodeLens (Launch) - HyperLinkAuthor",
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
@@ -41,17 +30,6 @@
 			"console": "internalConsole",
 			"stopOnEntry": false,
 			"mainClass": "CS576.finalProject.Demo",
-			"args": "",
-			"projectName": "HyperLinkPlayer"
-		},
-		{
-			"type": "java",
-			"name": "CodeLens (Launch) - HyperLinkAuthor",
-			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"console": "internalConsole",
-			"stopOnEntry": false,
-			"mainClass": "CS576.finalProject.HyperLinkAuthor",
 			"args": "",
 			"projectName": "HyperLinkPlayer"
 		},
