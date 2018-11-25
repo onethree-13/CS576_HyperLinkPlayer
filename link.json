@@ -1,20 +1,26 @@
 {
 	"links": [
 		{
-			"nbFrame": 1,
-			"boundary": [
-				{
-					"xPos": 0,
-					"yPos": 0,
-					"width": 1,
-					"height": 1
-				}
-			],
-			"link": {
-				"pathName": "destPath",
-				"nbFrameOfStart": 1,
-				"nbFrameOfEnd": 1
-			}
+			"object": "elephant",
+			"oriPathName": "E:\\CS576\\project\\AIFilm\\AIFilmOne",
+			"oriFrameNum": 1,
+			"destPathName": "E:\\CS576\\project\\AIFilm\\AIFilmTwo",
+			"destFrameNum": 1,
+			"boundaryX": 100,
+			"boundaryY": 5,
+			"boundaryWidth": 100,
+			"boundaryHeight": 100
+		},
+		{
+			"object": "giraffe",
+			"oriPathName": "E:\\CS576\\project\\AIFilm\\AIFilmOne",
+			"oriFrameNum": 2,
+			"destPathName": "E:\\CS576\\project\\AIFilm\\AIFilmTwo",
+			"destFrameNum": 1,
+			"boundaryX": 100,
+			"boundaryY": 5,
+			"boundaryWidth": 100,
+			"boundaryHeight": 100
 		}
 	]
 }

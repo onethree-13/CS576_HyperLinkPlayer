@@ -11,6 +11,7 @@ import CS576.utils.fileControl;
 import CS576.utils.rgbPlayer;
 import CS576.utils.timeControl;
 import CS576.utils.wavPlayer;
+import CS576.utils.*;
 
 public class HyperLinkPlayer {
 
@@ -45,6 +46,8 @@ public class HyperLinkPlayer {
     }
 
     public static void main(String[] args) {
+        LinkInfoMap json = new LinkInfoMap("link.json");
+        json.print();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 displayJFrame(args);
