@@ -20,6 +20,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.DefaultListModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import java.util.regex.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

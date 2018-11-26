@@ -8,30 +8,110 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.swing.JPanel;
+import java.util.*;
+import java.awt.Rectangle;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseListener;
 
-public class rgbPlayer extends JPanel {
+public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListener {
 
 	private BufferedImage bi = new BufferedImage(352, 288, BufferedImage.TYPE_INT_RGB);
-	private String pathname;
+	private String pathname = null;
+	private DisplayInfo info;
+	private Point point = new Point(0, 0);
+	private LinkInfoMap map;
+	private int num = 0;
+	private LinkInfo linkInfo = null;
+	private FileControl fctrl;
+	private TimeControl tctrl;
 
-	public rgbPlayer(String filename) {
-		openFile(filename);
+	public RGBPlayer() {
 		setPreferredSize(new Dimension(352, 288));
+		addMouseMotionListener(this);
+		addMouseListener(this);
 	}
 
-	public rgbPlayer() {
-		setPreferredSize(new Dimension(352, 288));
+	public void PanelLink(LinkInfoMap map, DisplayInfo info, FileControl fctrl, TimeControl tctrl) {
+		this.map = map;
+		this.info = info;
+		this.fctrl = fctrl;
+		this.tctrl = tctrl;
+	}
+
+	public void mouseMoved(MouseEvent e) {
+		point.x = e.getX();
+		point.y = e.getY();
+		info.setMouseX(e.getX());
+		info.setMouseY(e.getY());
+		for (LinkInfo linkInfo : map.getLinkInfo(num + 1)) {
+			if (LinkInfo2Rect(linkInfo).contains(point)) {
+				this.linkInfo = linkInfo;
+				info.setLinkInfo(linkInfo);
+				return;
+			}
+		}
+		this.linkInfo = null;
+		info.setLinkInfo(new LinkInfo());
+	}
+
+	public void mouseDragged(MouseEvent e) {
+	}
+
+	public Rectangle LinkInfo2Rect(LinkInfo linkInfo) {
+		return new Rectangle(linkInfo.getBoundaryX(), linkInfo.getBoundaryY(), linkInfo.getBoundaryWidth(),
+				linkInfo.getBoundaryHeight());
+	}
+
+	LinkInfo getLinkInfo() {
+		return new LinkInfo();
+	}
+
+	public void mousePressed(MouseEvent e) {
+	}
+
+	public void mouseReleased(MouseEvent e) {
+	}
+
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	public void mouseExited(MouseEvent e) {
+	}
+
+	public void mouseClicked(MouseEvent e) {
+		if (linkInfo != null) {
+			fctrl.openFile(linkInfo.getDestPathName());
+			tctrl.setFrame(linkInfo.getDestFrameNum());
+		}
 	}
 
 	public void openFile(String pathname) {
 		this.pathname = pathname;
-		play(1);
+		play(num);
 	}
 
-	public void play(int num) {
+	public void drawHyperBoxes() {
+		List<LinkInfo> list;
+		try {
+			list = map.getLinkInfo(num + 1);
+			Graphics graph = bi.getGraphics();
+			graph.setColor(Color.MAGENTA);
+			for (LinkInfo linkInfo : list) {
+				graph.drawRect(linkInfo.getBoundaryX(), linkInfo.getBoundaryY(), linkInfo.getBoundaryWidth(),
+						linkInfo.getBoundaryHeight());
+			}
+			graph.dispose();
+		} catch (Exception e) {
+			System.out.println("No hyperlink file.");
+		}
+	}
+
+	public void drawImage() {
 		byte[] data = new byte[288 * 352 * 3];
 		try {
-			FileInputStream fis = new FileInputStream(pathname + String.format("%04d", num) + ".rgb");
+			FileInputStream fis = new FileInputStream(pathname + String.format("%04d", num + 1) + ".rgb");
 			fis.read(data);
 			fis.close();
 		} catch (IOException e) {
@@ -49,6 +129,12 @@ public class rgbPlayer extends JPanel {
 				}
 			}
 		}
+	}
+
+	public void play(int num) {
+		this.num = num;
+		drawImage();
+		drawHyperBoxes();
 		repaint();
 	}
 

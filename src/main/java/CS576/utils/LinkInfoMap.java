@@ -9,19 +9,16 @@ public class LinkInfoMap {
 
 	private HashMap<Integer, List<LinkInfo>> hmap = new HashMap<Integer, List<LinkInfo>>();
 
-	public static JSONObject parseJSONFile(String filename) {
-		try {
-			String content = new String(Files.readAllBytes(Paths.get(filename)));
-			return new JSONObject(content);
-		} catch (Exception e) {
-			System.out.println("Error: cannot parse json.");
-			return null;
+	public void print() {
+		for (List<LinkInfo> list : hmap.values()) {
+			for (LinkInfo linkInfo : list) {
+				System.out.println(linkInfo);
+			}
 		}
 	}
 
-	public void print() {
-		JSONObject links = new JSONObject(hmap);
-		System.out.println(links);
+	public void openFile(String filename) {
+		Json2LinkInfoMap(filename);
 	}
 
 	public void LinkInfoMap2Json(String filename) {
@@ -34,9 +31,14 @@ public class LinkInfoMap {
 	}
 
 	public void Json2LinkInfoMap(String filename) {
-		JSONObject obj = parseJSONFile(filename);
-		if (obj == null)
+		JSONObject obj = null;
+		try {
+			String content = new String(Files.readAllBytes(Paths.get(filename)));
+			obj = new JSONObject(content);
+		} catch (Exception e) {
+			System.out.println("No hyperlink file.");
 			return;
+		}
 		hmap.clear();
 		Iterator<String> keysItr = obj.keys();
 		while (keysItr.hasNext()) {
@@ -73,7 +75,7 @@ public class LinkInfoMap {
 	public LinkInfoMap() {
 	}
 
-	public void addLink(LinkInfo linkInfo) {
+	public void addLinkInfo(LinkInfo linkInfo) {
 		if (hmap.containsKey(linkInfo.getOriFrameNum()))
 			hmap.get(linkInfo.getOriFrameNum()).add(linkInfo);
 		else
@@ -82,5 +84,12 @@ public class LinkInfoMap {
 					add(linkInfo);
 				}
 			});
+	}
+
+	public List<LinkInfo> getLinkInfo(int frame) {
+		if (hmap.containsKey(frame))
+			return hmap.get(frame);
+		else
+			return new ArrayList<LinkInfo>();
 	}
 }

@@ -10,9 +10,10 @@ $ java -jar target/HyperLinkPlayer.jar
 
 ### Status
 
-I am working on `LinkInfo`, `LinkInfoMap` and `Rectagle` these three classes right now, haven't finished yet. 
+change json structure to `Map <frameNum, List<LinkInfo>>` in case that multiple links in one frame.
 
-The `LinkInfo` interface would be changed a little bit. The work would be done on this Sunday.
+file control is not finished.
 
+almost done.
 
-
+continue on Friday.

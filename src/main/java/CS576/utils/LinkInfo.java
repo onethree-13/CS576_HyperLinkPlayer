@@ -12,6 +12,15 @@ public class LinkInfo {
 	private int boundaryHeight;
 
 	public LinkInfo() {
+		object = new String();
+		destPathName = new String();
+	}
+
+	@Override
+	public String toString() {
+		return "object: " + object + ", oriFrameNum: " + oriFrameNum + "\ndestPathName: " + destPathName
+				+ ", destFrameNum: " + destFrameNum + ", boundaryX: " + boundaryX + ", boundaryY: " + boundaryY
+				+ ", boundaryWidth: " + boundaryWidth + ", boundaryHeight: " + boundaryHeight;
 	}
 
 	public void setObject(String object) {

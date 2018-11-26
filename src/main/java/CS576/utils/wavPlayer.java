@@ -8,17 +8,17 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 
-public class wavPlayer {
+public class WAVPlayer {
 	private AudioInputStream ais;
 	private AudioFormat format;
 	private DataLine.Info info;
 	private Clip clip;
 
-	public wavPlayer(String filename) {
+	public WAVPlayer(String filename) {
 		openFile(filename);
 	}
 
-	public wavPlayer() {
+	public WAVPlayer() {
 	}
 
 	public void openFile(String filename) {
@@ -42,7 +42,10 @@ public class wavPlayer {
 		clip.stop();
 	}
 
-	public void set(int us) {
+	public void set(long us) {
+		clip.stop();
+		System.out.println(us);
 		clip.setMicrosecondPosition(us);
+		System.out.println(clip.getMicrosecondPosition());
 	}
 }
