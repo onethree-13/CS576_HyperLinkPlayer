@@ -6,6 +6,13 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -15,17 +22,16 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.ListModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.DefaultListModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
-import java.util.regex.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import com.google.gson.Gson;
 
 import CS576.utils.AuthorPlayer;
 import CS576.utils.ImagePlayer;
@@ -52,10 +58,12 @@ public class HyperLinkAuthor extends JFrame {
     JSpinner spinnerFrom;
     JSpinner spinnerTo;
 
-    ArrayList<LinkInfoVO> links;
+    JButton btnSetFromSecondary;
+    JSpinner spinnerFromSecondary;
 
+    HashMap<String, HashMap<Integer, Rectangle>> linkFrames;
+    HashMap<String, LinkInfoVO> links;
         
-
     /**
 	 * Create the frame.
 	 */
@@ -84,14 +92,14 @@ public class HyperLinkAuthor extends JFrame {
 		primaryPlayer = new AuthorPlayer();
         secondaryPlayer = new AuthorPlayer();
 
-        JLabel lblFrameFrom = new JLabel("Frame From");
+        JLabel lblFrameFrom = new JLabel("Tracking From");
         lblFrameFrom.setHorizontalAlignment(SwingConstants.CENTER);
-        lblFrameFrom.setBounds(878, 125, 80, 16);
+        lblFrameFrom.setBounds(420, 125, 100, 16);
         contentPane.add(lblFrameFrom);
 
-        JLabel lblFrameTo = new JLabel("Frame To");
+        JLabel lblFrameTo = new JLabel("Tracking To");
         lblFrameTo.setHorizontalAlignment(SwingConstants.CENTER);
-        lblFrameTo.setBounds(878, 250, 80, 16);
+        lblFrameTo.setBounds(420, 250, 80, 16);
 
         contentPane.add(lblFrameTo);
         btnSetFrom = new JButton();
@@ -100,7 +108,16 @@ public class HyperLinkAuthor extends JFrame {
         spinnerFrom = new JSpinner();
         spinnerTo = new JSpinner();
 
-        links = new ArrayList<LinkInfoVO>();
+        JLabel lblFrameFrom_2 = new JLabel("Frame From");
+        lblFrameFrom_2.setHorizontalAlignment(SwingConstants.CENTER);
+        lblFrameFrom_2.setBounds(900, 125, 80, 16);
+        contentPane.add(lblFrameFrom_2);
+
+        btnSetFromSecondary = new JButton();
+        spinnerFromSecondary = new JSpinner();
+
+        linkFrames = new HashMap<String, HashMap<Integer, Rectangle>>();
+        links = new HashMap<String, LinkInfoVO>();
     
 		InitializeFrame();
     }
@@ -139,26 +156,34 @@ public class HyperLinkAuthor extends JFrame {
         btnSaveFile.setBounds(830, 6, 115, 75);
         contentPane.add(btnSaveFile);
         
-        primaryPlayer.setBounds(100, 125, ImagePlayer.PANEL_DEFAULT_WIDTH, ImagePlayer.PANEL_DEFAULT_HEIGHT);
+        primaryPlayer.setBounds(50, 125, ImagePlayer.PANEL_DEFAULT_WIDTH, ImagePlayer.PANEL_DEFAULT_HEIGHT);
         contentPane.add(primaryPlayer);
 
-        secondaryPlayer.setBounds(500, 125, ImagePlayer.PANEL_DEFAULT_WIDTH, ImagePlayer.PANEL_DEFAULT_HEIGHT);
+        secondaryPlayer.setBounds(530, 125, ImagePlayer.PANEL_DEFAULT_WIDTH, ImagePlayer.PANEL_DEFAULT_HEIGHT);
         contentPane.add(secondaryPlayer);
 
         btnSetFrom.setText("Set");
-        btnSetFrom.setBounds(878, 150, 80, 29);
+        btnSetFrom.setBounds(425, 150, 80, 29);
         contentPane.add(btnSetFrom);
 
         btnSetTo.setText("Set");
-        btnSetTo.setBounds(878, 275, 80, 29);
+        btnSetTo.setBounds(425, 275, 80, 29);
         contentPane.add(btnSetTo);
 
-        spinnerFrom.setBounds(878, 180, 80, 26);
+        spinnerFrom.setBounds(425, 180, 80, 26);
         contentPane.add(spinnerFrom);
         
-        spinnerTo.setBounds(878, 305, 80, 26);
+        spinnerTo.setBounds(425, 305, 80, 26);
         contentPane.add(spinnerTo);
 
+        btnSetFromSecondary.setText("Set");
+        btnSetFromSecondary.setBounds(905, 150, 80, 29);
+        contentPane.add(btnSetFromSecondary);
+
+        spinnerFromSecondary.setBounds(905, 180, 80, 26);
+        contentPane.add(spinnerFromSecondary);
+
+        linkFrames.clear();
         links.clear();
         
         // ActionListener
@@ -209,34 +234,37 @@ public class HyperLinkAuthor extends JFrame {
                     return;
                 }
 
-                if (!secondaryPlayer.isLoaded()) {
-                    JOptionPane.showMessageDialog(null, "The secondary video isn't loaded.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
                 Rectangle rect = primaryPlayer.getDraggedRectangle();
                 if (0 == rect.width || 0 == rect.height) {
                     JOptionPane.showMessageDialog(null, "Drag link area before create a hyperlink.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect);
-                if (0 < hm.size())
-                    return;
+                int trackingFrom = (Integer)spinnerFrom.getValue();
+                int trackingTo = (Integer)spinnerTo.getValue();
 
+                if (0 == trackingFrom && 0 == trackingTo) {
+                    trackingTo = primaryPlayer.getTotalFrameCnt();
+                }
+
+                if (!(trackingFrom < trackingTo)) {
+                    JOptionPane.showMessageDialog(null, "The starting frame of tracking section should be less than end point.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
                 String linkName = JOptionPane.showInputDialog("Link name");
                 if (null == linkName || "" == linkName) return;
 
-                
+                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect);
+                JOptionPane.showMessageDialog(null, hm.size() + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                linkFrames.put(linkName, hm);
                 
                 try {
-                    LinkInfoVO linkInfo = genLinkInfo(linkName);
-                    links.add(linkInfo);
-
                     DefaultListModel<String> dlm = (DefaultListModel<String>)list.getModel();
                     dlm.addElement(linkName);
                 } catch (Exception ev) {
                     JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    linkFrames.remove("linkName");
                 }
 			}
         });
@@ -244,11 +272,16 @@ public class HyperLinkAuthor extends JFrame {
         btnConnectVideo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
                 try {
+                    if (!secondaryPlayer.isLoaded()) {
+                        JOptionPane.showMessageDialog(null, "The secondary video isn't loaded.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
                     String linkName = list.getSelectedValue();
                     LinkInfoVO linkInfo = genLinkInfo(linkName);
 
                     int index = list.getSelectedIndex();
-                    links.set(index, linkInfo);
+                    links.put(linkName, linkInfo);
 
                     JOptionPane.showMessageDialog(null, "Saved.", "Info", JOptionPane.INFORMATION_MESSAGE);
                 } catch (Exception ev) {
@@ -260,8 +293,68 @@ public class HyperLinkAuthor extends JFrame {
         btnSaveFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
                 if (0 < links.size()) {
-                    Gson gson = new Gson();
-                    String data = gson.toJson(links);
+                    final JFileChooser fc = new JFileChooser();
+                    fc.setAcceptAllFileFilterUsed(false);
+                    
+                    FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON (*.json)", "json");
+                    fc.addChoosableFileFilter(filter);
+
+                    fc.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                    if (JFileChooser.APPROVE_OPTION == fc.showSaveDialog(contentPane)) {
+                        try {
+                            String fileName = fc.getSelectedFile().toString();
+                            if (!(fileName.toLowerCase().endsWith(".csv"))) {
+                                fileName += ".csv";
+                            }
+
+                            File file = new File(fileName);
+                            if (file.exists()) {
+                                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, fileName + " already exists. Do you want to overwrite?", "File exist", JOptionPane.YES_NO_OPTION)) {
+                                    ArrayList<LinkInfoVO> infos = new ArrayList<LinkInfoVO>();
+                
+                                    ListModel<String> model = list.getModel();
+                                    for (int i = 0; i < model.getSize(); i++) {
+                                        model.getElementAt(i);
+                                        infos.add(links.get(model.getElementAt(i)));
+                                    }
+                
+                                    String json = LinkInfoVO.toJson(infos);
+                                    
+                                    InputStream in = null;
+                                    FileOutputStream fos = null;
+
+                                    BufferedInputStream bis = null;
+                                    BufferedOutputStream bos = null;
+                                    
+                                    try {
+                                        in = new ByteArrayInputStream(json.getBytes("UTF-8"));
+                                        fos = new FileOutputStream(file);
+    
+                                        bis = new BufferedInputStream(in);
+                                        bos = new BufferedOutputStream(fos);
+    
+                                        byte[] buf = new byte[1024];
+                                        while (-1 != bis.read(buf)) {
+                                            bos.write(buf);
+                                        }
+                                    } catch (IOException ex) {
+                                        System.err.println(ex.getMessage());
+                                    } finally {                             
+                                        bos.close();
+                                        bis.close();
+                                        fos.close();
+                                        in.close();
+                                    }
+                                }
+                            }
+
+                            primaryPlayer.loadImages(fc.getSelectedFile().toString());
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            System.out.println(ex.getMessage());
+                            ex.printStackTrace();
+                        }
+                    }
                 }
 			}
         });
@@ -286,33 +379,21 @@ public class HyperLinkAuthor extends JFrame {
     }
 
     public LinkInfoVO genLinkInfo(String linkName) throws Exception {
-        String srcPathName = primaryPlayer.getPathName();
-        int nbSrcFrame = primaryPlayer.getCurFrameNum();
-        Rectangle rect = primaryPlayer.getDraggedRectangle();
-
-        if (0 == rect.width || 0 == rect.height) {
-            throw new Exception("A dragged area should be greater than 0.");
+        if (false == linkFrames.containsKey(linkName)) {
+            throw new Exception("Can't find link bounding box from primary video.");
         }
+
+        String srcPathName = primaryPlayer.getPathName();
         
         String linkPathName = secondaryPlayer.getPathName();
-        int nbLinkFrameFrom = (Integer)spinnerFrom.getValue();
-        int nbLinkFrameTo = (Integer)spinnerTo.getValue();
-
-        if (nbLinkFrameTo < nbLinkFrameFrom) {
-            throw new Exception("The linked video's beginning frame should be smaller or equal than end frame.");
-        }
-
+        int nbLinkFrameFrom = (Integer)spinnerFromSecondary.getValue();
+        
         LinkInfoVO linkInfo = new LinkInfoVO();
         linkInfo.setLinkName(linkName);
         linkInfo.setOriginPathName(srcPathName);
-        linkInfo.setFrame(nbSrcFrame);
-        linkInfo.setBoundaryX(rect.x);
-        linkInfo.setBoundaryY(rect.y);
-        linkInfo.setBoundaryWidth(rect.width);
-        linkInfo.setBoundaryHeight(rect.height);
-        linkInfo.setLinkPathName(linkPathName);
-        linkInfo.setLinkFrameFrom(nbLinkFrameFrom);
-        linkInfo.setLinkFrameTo(nbLinkFrameTo);
+        linkInfo.setFrame(linkFrames.get(linkName));
+        linkInfo.setDestinationPathName(linkPathName);
+        linkInfo.setDestinationFrameFrom(nbLinkFrameFrom);
 
         return linkInfo;
     }

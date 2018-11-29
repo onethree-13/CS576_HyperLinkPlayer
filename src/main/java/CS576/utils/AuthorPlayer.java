@@ -142,7 +142,7 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
 
         try {
             Mat mat = frameCtl.getFrameMat(nbCurFrame);
-            tracker.createTracker(MotionTracker.TRACKER_CSRT);
+            tracker.createTracker(MotionTracker.TRACKER_MEDIANFLOW);
             tracker.initialize(mat, boundingBox);
 
             for (int i = nbCurFrame + 1; i < frameCtl.getTotalFrameCnt(); i++) {

@@ -207,6 +207,10 @@ public class ImagePlayer extends JPanel implements ChangeListener {
         return frameCtl.getCurFrameNum();
     }
 
+    public int getTotalFrameCnt() {
+        return frameCtl.getTotalFrameCnt();
+    }
+
     public void setMouseMotionListener(MouseMotionListener listener) {
         MouseMotionListener[] listeners = panel.getMouseMotionListeners();
         if (0 < listeners.length) {

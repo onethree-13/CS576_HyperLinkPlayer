@@ -33,7 +33,7 @@ public class RgbReader {
         File f = new File(pathName);
         if (!f.isDirectory()) {
             System.out.println(pathName + " is not directory.");
-            throw new Exception(pathName + "is not directory. The input path should be a directory.");
+            throw new Exception(pathName + " is not directory. The input path should be a directory.");
         }
 
         // Retrieve .rgb files from
