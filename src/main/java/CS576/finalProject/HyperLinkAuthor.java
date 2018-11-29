@@ -39,6 +39,8 @@ import CS576.utils.LinkInfoVO;
 
 public class HyperLinkAuthor extends JFrame {
 
+    private static final String FILE_EXTENSION = "json";
+
     private JPanel contentPane;
     
     private JButton btnImportPrimary;
@@ -243,7 +245,7 @@ public class HyperLinkAuthor extends JFrame {
                 int trackingFrom = (Integer)spinnerFrom.getValue();
                 int trackingTo = (Integer)spinnerTo.getValue();
 
-                if (0 == trackingFrom && 0 == trackingTo) {
+                if (1 == trackingFrom && 1 == trackingTo) {
                     trackingTo = primaryPlayer.getTotalFrameCnt();
                 }
 
@@ -280,10 +282,9 @@ public class HyperLinkAuthor extends JFrame {
                     String linkName = list.getSelectedValue();
                     LinkInfoVO linkInfo = genLinkInfo(linkName);
 
-                    int index = list.getSelectedIndex();
                     links.put(linkName, linkInfo);
 
-                    JOptionPane.showMessageDialog(null, "Saved.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Connected.", "Info", JOptionPane.INFORMATION_MESSAGE);
                 } catch (Exception ev) {
                     JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -296,63 +297,64 @@ public class HyperLinkAuthor extends JFrame {
                     final JFileChooser fc = new JFileChooser();
                     fc.setAcceptAllFileFilterUsed(false);
                     
-                    FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON (*.json)", "json");
+                    FileNameExtensionFilter filter = new FileNameExtensionFilter(FILE_EXTENSION.toUpperCase()+" (*."+FILE_EXTENSION+")", FILE_EXTENSION);
                     fc.addChoosableFileFilter(filter);
 
                     fc.setCurrentDirectory(new File(System.getProperty("user.dir")));
                     if (JFileChooser.APPROVE_OPTION == fc.showSaveDialog(contentPane)) {
+                        InputStream in = null;
+                        FileOutputStream fos = null;
+                        
+                        BufferedInputStream bis = null;
+                        BufferedOutputStream bos = null;
+
                         try {
                             String fileName = fc.getSelectedFile().toString();
-                            if (!(fileName.toLowerCase().endsWith(".csv"))) {
-                                fileName += ".csv";
+                            if (!(fileName.toLowerCase().endsWith("."+FILE_EXTENSION))) {
+                                fileName += "."+FILE_EXTENSION;
                             }
 
                             File file = new File(fileName);
                             if (file.exists()) {
-                                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(null, fileName + " already exists. Do you want to overwrite?", "File exist", JOptionPane.YES_NO_OPTION)) {
-                                    ArrayList<LinkInfoVO> infos = new ArrayList<LinkInfoVO>();
-                
-                                    ListModel<String> model = list.getModel();
-                                    for (int i = 0; i < model.getSize(); i++) {
-                                        model.getElementAt(i);
-                                        infos.add(links.get(model.getElementAt(i)));
-                                    }
-                
-                                    String json = LinkInfoVO.toJson(infos);
-                                    
-                                    InputStream in = null;
-                                    FileOutputStream fos = null;
-
-                                    BufferedInputStream bis = null;
-                                    BufferedOutputStream bos = null;
-                                    
-                                    try {
-                                        in = new ByteArrayInputStream(json.getBytes("UTF-8"));
-                                        fos = new FileOutputStream(file);
-    
-                                        bis = new BufferedInputStream(in);
-                                        bos = new BufferedOutputStream(fos);
-    
-                                        byte[] buf = new byte[1024];
-                                        while (-1 != bis.read(buf)) {
-                                            bos.write(buf);
-                                        }
-                                    } catch (IOException ex) {
-                                        System.err.println(ex.getMessage());
-                                    } finally {                             
-                                        bos.close();
-                                        bis.close();
-                                        fos.close();
-                                        in.close();
-                                    }
-                                }
+                                if (JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, fileName + " already exists. Do you want to overwrite?", "File exist", JOptionPane.YES_NO_OPTION)) return;
                             }
+                                
+                            ArrayList<LinkInfoVO> infos = new ArrayList<LinkInfoVO>();
+            
+                            ListModel<String> model = list.getModel();
+                            for (int i = 0; i < model.getSize(); i++) {
+                                model.getElementAt(i);
+                                infos.add(links.get(model.getElementAt(i)));
+                            }
+        
+                            String json = LinkInfoVO.toJson(infos);
+                            
+                            in = new ByteArrayInputStream(json.getBytes("UTF-8"));
+                            fos = new FileOutputStream(file);
 
-                            primaryPlayer.loadImages(fc.getSelectedFile().toString());
+                            bis = new BufferedInputStream(in);
+                            bos = new BufferedOutputStream(fos);
+
+                            int nbOfByteRead = 0;
+                            int nbTotalRead = 0;
+                            byte[] buf = new byte[1024];
+                            while (-1 != (nbOfByteRead = bis.read(buf, 0, buf.length))) {
+                                bos.write(buf, 0, nbOfByteRead);
+                                nbTotalRead += nbOfByteRead;
+                            }
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                             System.out.println(ex.getMessage());
                             ex.printStackTrace();
+                        } finally {
+                            try {
+                                if (null != bos) bos.close();
+                                if (null != bis) bis.close();
+                                if (null != fos) fos.close();
+                                if (null != in) in.close();
+                            } catch (Exception ex) {
+                                System.err.println(ex.getMessage());
+                            }
                         }
                     }
                 }
@@ -361,7 +363,7 @@ public class HyperLinkAuthor extends JFrame {
 
         btnSetFrom.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int nbFrame = secondaryPlayer.getCurFrameNum();
+                int nbFrame = primaryPlayer.getCurFrameNum();
                 if (nbFrame < 0) nbFrame = 0;
 
                 spinnerFrom.setValue(nbFrame);
@@ -370,10 +372,19 @@ public class HyperLinkAuthor extends JFrame {
 
         btnSetTo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int nbFrame = secondaryPlayer.getCurFrameNum();
+                int nbFrame = primaryPlayer.getCurFrameNum();
                 if (nbFrame < 0) nbFrame = 0;
 
                 spinnerTo.setValue(nbFrame);
+			}
+        });
+
+        btnSetFromSecondary.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int nbFrame = secondaryPlayer.getCurFrameNum();
+                if (nbFrame < 0) nbFrame = 0;
+
+                spinnerFromSecondary.setValue(nbFrame);
 			}
         });
     }

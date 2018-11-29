@@ -111,20 +111,20 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
 
     @Override
     public void beforeDrawImage(BufferedImage image) {
-        if (0 == rect.getWidth() || 0 == rect.getHeight()) return;
-
         if (null != hm && hm.containsKey(getCurFrameNum())) {
             drawRectangle(image, hm.get(getCurFrameNum()), Color.MAGENTA);
         }
-
+        
         drawRectangle(image, rect, Color.cyan);
     }
-
+    
     public Rectangle getDraggedRectangle() {
         return rect;
     }
-
+    
     public BufferedImage drawRectangle(BufferedImage image, Rectangle rect, Color color) {
+        if (0 == rect.getWidth() || 0 == rect.getHeight()) return image;
+
         Graphics graph = image.getGraphics();
         graph.setColor(color);
         graph.drawRect(rect.x, rect.y, rect.width, rect.height);
@@ -163,8 +163,8 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
         }
 
         this.hm = hm;
+        this.rect.width = this.rect.height = 0;
 
         return hm;
-        
     }
 }

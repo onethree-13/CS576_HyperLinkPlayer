@@ -128,7 +128,7 @@ public class LinkInfoVO {
 		object.add("oriFrames", oriFrames);
 
 		object.addProperty("destPathName", getDestinationPathName());
-		object.addProperty("destFrameNum", getDestinationPathName());
+		object.addProperty("destFrameNum", getDestinationFrameFrom());
 
 		return object;
 	}
