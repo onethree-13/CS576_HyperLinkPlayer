@@ -16,8 +16,6 @@ import org.bytedeco.javacpp.opencv_core.Rect2d;
 
 public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, ImagePanelEventListener {
 
-    private MotionTracker tracker;
-    
     private Point pt;
     private Rectangle rect;
 
@@ -31,7 +29,6 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
 	public AuthorPlayer() {
         super();
 
-        tracker = new MotionTracker();
         pt = new Point();
         rect = new Rectangle();
 
@@ -45,8 +42,6 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
         setMouseMotionListener(this);
         getPanel().setImagePanelEventListener(this);
 
-        tracker.createTracker(MotionTracker.TRACKER_CSRT);
-        
         bDragged = false;
     }
 
@@ -133,26 +128,54 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
         return image;
     }
 
-    public HashMap<Integer, Rectangle> trackMotion(final Rectangle rect) {
+    public HashMap<Integer, Rectangle> trackMotion(final Rectangle rect, final int nbFrameFrom, int nbFrameTo) {
+        int nbCurFrame = getCurFrameNum();
+        HashMap<Integer, Rectangle> hm = trackMotion(rect, nbCurFrame, nbFrameTo, true);
+
+        hm.putAll(trackMotion(rect, nbCurFrame, nbFrameFrom, false));
+
+        hm.put(nbCurFrame, new Rectangle(rect));
+
+        this.hm = hm;
+        this.rect.width = this.rect.height = 0;
+
+        return hm;
+    }
+
+    public HashMap<Integer, Rectangle> trackMotion(final Rectangle rect, final int nbCurFrame, int nbFrameTo, boolean bForward) {
         HashMap<Integer, Rectangle> hm = new HashMap<Integer, Rectangle>();
         
-        Rect2d boundingBox = new Rect2d(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        MotionTracker tracker = new MotionTracker();
         FrameController frameCtl = getFrameController();
-        int nbCurFrame = getCurFrameNum();
+        Rect2d boundingBox = new Rect2d(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 
         try {
             Mat mat = frameCtl.getFrameMat(nbCurFrame);
+
             tracker.createTracker(MotionTracker.TRACKER_MEDIANFLOW);
             tracker.initialize(mat, boundingBox);
 
-            for (int i = nbCurFrame + 1; i < frameCtl.getTotalFrameCnt(); i++) {
-                Rectangle rt = new Rectangle((int)boundingBox.x(), (int)boundingBox.y(), (int)boundingBox.width(), (int)boundingBox.height());
-                hm.put(i, rt);
-
-                mat = frameCtl.getFrameMat(i);
-                if (!tracker.updateTracker(mat, boundingBox)) {
-                    break;
+            if (bForward) {
+                for (int i = nbCurFrame + 1; i <= nbFrameTo; i++) {
+                    mat = frameCtl.getFrameMat(i);
+                    if (!tracker.updateTracker(mat, boundingBox)) {
+                        break;
+                    }
+    
+                    Rectangle rt = new Rectangle((int)boundingBox.x(), (int)boundingBox.y(), (int)boundingBox.width(), (int)boundingBox.height());
+                    hm.put(i, rt);
                 }
+            } else {
+                for (int i = nbCurFrame - 1; nbFrameTo <= i; i--) {
+                    mat = frameCtl.getFrameMat(i);
+                    if (!tracker.updateTracker(mat, boundingBox)) {
+                        break;
+                    }
+    
+                    Rectangle rt = new Rectangle((int)boundingBox.x(), (int)boundingBox.y(), (int)boundingBox.width(), (int)boundingBox.height());
+                    hm.put(i, rt);
+                }
+
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -161,9 +184,6 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
         } finally {
             tracker.closeTracker();
         }
-
-        this.hm = hm;
-        this.rect.width = this.rect.height = 0;
 
         return hm;
     }

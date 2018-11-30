@@ -245,8 +245,8 @@ public class HyperLinkAuthor extends JFrame {
                 int trackingFrom = (Integer)spinnerFrom.getValue();
                 int trackingTo = (Integer)spinnerTo.getValue();
 
-                if (1 == trackingFrom && 1 == trackingTo) {
-                    trackingTo = primaryPlayer.getTotalFrameCnt();
+                if (0 == trackingFrom && 0 == trackingTo) {
+                    trackingTo = primaryPlayer.getTotalFrameCnt() - 1;
                 }
 
                 if (!(trackingFrom < trackingTo)) {
@@ -257,7 +257,7 @@ public class HyperLinkAuthor extends JFrame {
                 String linkName = JOptionPane.showInputDialog("Link name");
                 if (null == linkName || "" == linkName) return;
 
-                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect);
+                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo);
                 JOptionPane.showMessageDialog(null, hm.size() + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);
                 linkFrames.put(linkName, hm);
                 
@@ -336,11 +336,9 @@ public class HyperLinkAuthor extends JFrame {
                             bos = new BufferedOutputStream(fos);
 
                             int nbOfByteRead = 0;
-                            int nbTotalRead = 0;
                             byte[] buf = new byte[1024];
                             while (-1 != (nbOfByteRead = bis.read(buf, 0, buf.length))) {
                                 bos.write(buf, 0, nbOfByteRead);
-                                nbTotalRead += nbOfByteRead;
                             }
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

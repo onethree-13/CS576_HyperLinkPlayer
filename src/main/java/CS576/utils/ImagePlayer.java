@@ -23,9 +23,13 @@ public class ImagePlayer extends JPanel implements ChangeListener {
     public static final int PANEL_DEFAULT_HEIGHT = 385;
 
     private ImagePanel panel;
+
+    private JButton btnPrev;
+    private JButton btnNext;
+
     private JSlider slider;
     private JLabel lblFrameStr;
-    
+
     private JButton btnPlay;
     private JButton btnStop;
 
@@ -43,10 +47,14 @@ public class ImagePlayer extends JPanel implements ChangeListener {
 	public ImagePlayer() {
 		setLayout(null);
 		
-		panel = new ImagePanel();
+        panel = new ImagePanel();
+        
+        btnPrev = new JButton();
+        btnNext = new JButton();
+
         slider = new JSlider();
 		lblFrameStr = new JLabel();
-        
+
         btnPlay = new JButton();
         btnStop = new JButton();
 
@@ -58,11 +66,19 @@ public class ImagePlayer extends JPanel implements ChangeListener {
         panel.setBorder(new LineBorder(new Color(0, 0, 0)));
         panel.setBounds(6, 6, 352, 288);
         add(panel);
+
+        btnPrev.setText("<<");
+        btnPrev.setBounds(6, 300, 30, 29);
+        add(btnPrev);
+
+        btnNext.setText(">>");
+        btnNext.setBounds(328, 300, 30, 29);
+        add(btnNext);
         
         slider.setValue(0);
 		slider.setPaintTicks(true);
 		slider.setPaintLabels(true);
-        slider.setBounds(6, 300, 352, 29);
+        slider.setBounds(36, 300, 292, 29);
         slider.addChangeListener(this);
         slider.setValue(0);
         add(slider);
@@ -84,6 +100,28 @@ public class ImagePlayer extends JPanel implements ChangeListener {
         nbCurFrame = 0;
         
         // ActionListener
+        btnPrev.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!isLoaded()) return;
+
+                if (slider.getMinimum() < slider.getValue()) {
+                    slider.setValue(slider.getValue() - 1);
+                }
+            }
+        });
+
+        btnNext.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!isLoaded()) return;
+
+                if (slider.getValue() < slider.getMaximum()) {
+                    slider.setValue(slider.getValue() + 1);
+                }
+            }
+        });
+
         btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
                 if (!isLoaded()) {
