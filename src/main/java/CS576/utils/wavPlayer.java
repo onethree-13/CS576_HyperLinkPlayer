@@ -31,7 +31,7 @@ public class WAVPlayer {
 		} catch (Exception e) {
 			System.out.println("cannot play wav file:" + filename);
 		}
-		System.out.println("audio length: " + clip.getFrameLength() + ", " + clip.getMicrosecondLength());
+		// System.out.println("audio length: " + clip.getFrameLength() + ", " + clip.getMicrosecondLength());
 	}
 
 	public void play() {
@@ -44,8 +44,6 @@ public class WAVPlayer {
 
 	public void set(long us) {
 		clip.stop();
-		System.out.println(us);
 		clip.setMicrosecondPosition(us);
-		System.out.println(clip.getMicrosecondPosition());
 	}
 }

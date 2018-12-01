@@ -32,6 +32,7 @@ public class LinkInfoMap {
 
 	public void Json2LinkInfoMap(String filename) {
 		JSONObject obj = null;
+		hmap.clear();
 		try {
 			String content = new String(Files.readAllBytes(Paths.get(filename)));
 			obj = new JSONObject(content);
@@ -39,7 +40,6 @@ public class LinkInfoMap {
 			System.out.println("No hyperlink file.");
 			return;
 		}
-		hmap.clear();
 		Iterator<String> keysItr = obj.keys();
 		while (keysItr.hasNext()) {
 			String key = keysItr.next();
