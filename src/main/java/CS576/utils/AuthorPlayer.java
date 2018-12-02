@@ -20,6 +20,8 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
     private Rectangle rect;
 
     private Boolean bDragged;
+    
+    private AuthorPlayerEventListener listener;
 
     private HashMap<Integer, Rectangle> hm;
     
@@ -51,7 +53,7 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
             + " (" + e.getX() + "," + e.getY() + ")"
             + " detected on "
             + e.getComponent().getClass().getName());
-            
+        
         if ((ImagePanel)e.getSource() == getPanel() && bDragged) {
             mouseDragged(e);
             bDragged = false;
@@ -64,7 +66,7 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
             + " (" + e.getX() + "," + e.getY() + ")"
             + " detected on "
             + e.getComponent().getClass().getName());
-
+        
         if ((ImagePanel)e.getSource() == getPanel()) {
             if (!isLoaded()) return;
 
@@ -96,6 +98,11 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
                 }
 
                 updateImage();
+                
+                if (null != listener) {
+                	listener.mouseDragged(rect);
+                }
+                
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.out.println(ex.getMessage());
@@ -111,6 +118,14 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
         }
         
         drawRectangle(image, rect, Color.cyan);
+        
+        if (null != listener) {
+        	listener.frameChanged(getCurFrameNum(), image);
+        }
+    }
+    
+    public void setAuthorPlayerEventListener(AuthorPlayerEventListener listener) {
+    	this.listener = listener; 
     }
     
     public Rectangle getDraggedRectangle() {
