@@ -64,7 +64,7 @@ public class DisplayInfo extends JPanel {
 
 	public void setLinkInfo(LinkInfo linkInfo) {
 		object.setText("object: " + linkInfo.getObject());
-		destination.setText("object: " + linkInfo.getDestPathName());
+		destination.setText("destination: " + linkInfo.getDestPathName());
 	}
 
 }

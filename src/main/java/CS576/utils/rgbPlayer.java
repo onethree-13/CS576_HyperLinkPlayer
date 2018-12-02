@@ -3,17 +3,17 @@ package CS576.utils;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.JPanel;
-import java.util.*;
-import java.awt.Rectangle;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
 
 public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListener {
 
@@ -26,6 +26,7 @@ public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListe
 	private LinkInfo linkInfo = null;
 	private FileControl fctrl;
 	private TimeControl tctrl;
+	private Boolean hideOrShow = true;
 
 	public RGBPlayer() {
 		setPreferredSize(new Dimension(352, 288));
@@ -81,9 +82,11 @@ public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListe
 	}
 
 	public void mouseClicked(MouseEvent e) {
-		if (linkInfo != null) {
+		if (linkInfo != null && hideOrShow) {
+			tctrl.stop();
 			fctrl.openFile(linkInfo.getDestPathName());
-			tctrl.setFrame(linkInfo.getDestFrameNum());
+			tctrl.set(linkInfo.getDestFrameNum());
+			tctrl.play();
 		}
 	}
 
@@ -104,7 +107,7 @@ public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListe
 			}
 			graph.dispose();
 		} catch (Exception e) {
-			System.out.println("No hyperlink file.");
+			System.out.println("No hyperlink file: " + pathname + ".json");
 		}
 	}
 
@@ -115,7 +118,7 @@ public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListe
 			fis.read(data);
 			fis.close();
 		} catch (IOException e) {
-			System.out.println("cannot play rgb file:" + pathname + num);
+			System.out.println("No rgb file:" + pathname + String.format("%04d", num + 1) + ".rgb");
 		}
 
 		for (int y = 0; y < 288; y++) {
@@ -134,7 +137,8 @@ public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListe
 	public void play(int num) {
 		this.num = num;
 		drawImage();
-		drawHyperBoxes();
+		if (hideOrShow)
+			drawHyperBoxes();
 		repaint();
 	}
 
@@ -144,4 +148,7 @@ public class RGBPlayer extends JPanel implements MouseMotionListener, MouseListe
 		g.drawImage(bi, 0, 0, this);
 	}
 
+	public void setHideOrShow(Boolean hideOrShow) {
+		this.hideOrShow = hideOrShow;
+	}
 }

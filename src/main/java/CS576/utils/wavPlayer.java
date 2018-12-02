@@ -13,6 +13,7 @@ public class WAVPlayer {
 	private AudioFormat format;
 	private DataLine.Info info;
 	private Clip clip;
+	private Boolean isOpened = false;
 
 	public WAVPlayer(String filename) {
 		openFile(filename);
@@ -28,22 +29,30 @@ public class WAVPlayer {
 			info = new DataLine.Info(Clip.class, format);
 			clip = (Clip) AudioSystem.getLine(info);
 			clip.open(ais);
+			isOpened = true;
 		} catch (Exception e) {
-			System.out.println("cannot play wav file:" + filename);
+			isOpened = false;
+			System.out.println("NO wav file:" + filename);
 		}
-		// System.out.println("audio length: " + clip.getFrameLength() + ", " + clip.getMicrosecondLength());
 	}
 
 	public void play() {
-		clip.start();
+		if (isOpened) {
+			clip.start();
+		} else
+			System.out.println("NO wav file.");
 	}
 
 	public void stop() {
-		clip.stop();
+		if (isOpened)
+			clip.stop();
 	}
 
 	public void set(long us) {
-		clip.stop();
-		clip.setMicrosecondPosition(us);
+		if (isOpened) {
+			clip.stop();
+			clip.setMicrosecondPosition(us);
+		} else
+			System.out.println("NO wav file.");
 	}
 }

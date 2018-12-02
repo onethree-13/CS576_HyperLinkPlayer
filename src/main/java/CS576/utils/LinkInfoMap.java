@@ -34,37 +34,48 @@ public class LinkInfoMap {
 		JSONObject obj = null;
 		hmap.clear();
 		try {
+
 			String content = new String(Files.readAllBytes(Paths.get(filename)));
 			obj = new JSONObject(content);
 		} catch (Exception e) {
 			System.out.println("No hyperlink file.");
 			return;
 		}
-		Iterator<String> keysItr = obj.keys();
-		while (keysItr.hasNext()) {
-			String key = keysItr.next();
-			JSONArray links = obj.getJSONArray(key);
+
+		try {
+			JSONArray links = obj.getJSONArray("links");
 			for (int i = 0; i < links.length(); i++) {
-				LinkInfo linkInfo = new LinkInfo();
 				JSONObject link = links.getJSONObject(i);
-				linkInfo.setObject(link.getString("object"));
-				linkInfo.setOriPathName(link.getString("oriPathName"));
-				linkInfo.setOriFrameNum(link.getInt("oriFrameNum"));
-				linkInfo.setDestPathName(link.getString("destPathName"));
-				linkInfo.setDestFrameNum(link.getInt("destFrameNum"));
-				linkInfo.setBoundaryX(link.getInt("boundaryX"));
-				linkInfo.setBoundaryY(link.getInt("boundaryY"));
-				linkInfo.setBoundaryWidth(link.getInt("boundaryWidth"));
-				linkInfo.setBoundaryHeight(link.getInt("boundaryHeight"));
-				if (hmap.containsKey(linkInfo.getOriFrameNum()))
-					hmap.get(linkInfo.getOriFrameNum()).add(linkInfo);
-				else
-					hmap.put(linkInfo.getOriFrameNum(), new ArrayList<LinkInfo>() {
-						{
-							add(linkInfo);
-						}
-					});
+				String object = link.getString("linkName");
+				String oriPathName = link.getString("oriPathName");
+				String destPathName = link.getString("destPathName");
+				int destFrameNum = link.getInt("destFrameNum");
+				JSONArray oriFrames = link.getJSONArray("oriFrames");
+				for (int j = 0; j < oriFrames.length(); j++) {
+					LinkInfo linkInfo = new LinkInfo();
+					JSONObject oriFrame = oriFrames.getJSONObject(j);
+					linkInfo.setObject(object);
+					linkInfo.setOriPathName(oriPathName);
+					linkInfo.setOriFrameNum(oriFrame.getInt("frameNum"));
+					linkInfo.setDestPathName(destPathName);
+					linkInfo.setDestFrameNum(destFrameNum);
+					linkInfo.setBoundaryX(oriFrame.getInt("x"));
+					linkInfo.setBoundaryY(oriFrame.getInt("y"));
+					linkInfo.setBoundaryWidth(oriFrame.getInt("width"));
+					linkInfo.setBoundaryHeight(oriFrame.getInt("height"));
+					if (hmap.containsKey(linkInfo.getOriFrameNum()))
+						hmap.get(linkInfo.getOriFrameNum()).add(linkInfo);
+					else
+						hmap.put(linkInfo.getOriFrameNum(), new ArrayList<LinkInfo>() {
+							{
+								add(linkInfo);
+							}
+						});
+				}
 			}
+		} catch (Exception e) {
+			System.out.println("Failed to format hyperlink file.");
+			System.out.println(e.fillInStackTrace());
 		}
 	}
 

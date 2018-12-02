@@ -3,18 +3,16 @@ package CS576.utils;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class TimeControl extends JPanel {
 	private final int FRAME_RATE = 30;
@@ -24,20 +22,20 @@ public class TimeControl extends JPanel {
 	private JTextField frameNum = new JTextField(6);
 	private JButton goTo = new JButton("Go to..");
 	private Boolean startOrStop = new Boolean(false);
-	private JLabel frameDisplay = new JLabel("frame: 0001");
 	private JSlider slider = new JSlider();
 	private Boolean sliderSetValue = false;
-	private JButton hide = new JButton("Hide");
-	private Boolean hideOrShow = false;
-	private Timer timer;
+	private JButton hide = new JButton("hide");
+	private Boolean hideOrShow = true;
+	private Timer timer = new Timer();
 
 	private RGBPlayer rgb;
 	private WAVPlayer wav;
-	private LinkInfoMap map;
 	private DisplayInfo info;
 
-	private void play() {
+	public void play() {
+		startOrStop = false;
 		wav.set((long) ((long) frame * 1000000L / (long) FRAME_RATE));
+		timer.cancel();
 		timer = new Timer();
 		control.setText("stop");
 		wav.play();
@@ -51,7 +49,6 @@ public class TimeControl extends JPanel {
 					stop();
 					return;
 				}
-				frameDisplay.setText("frame: " + String.format("%04d", frame + 1));
 				rgb.play(frame);
 				sliderSetValue = true;
 				slider.setValue(frame);
@@ -61,15 +58,15 @@ public class TimeControl extends JPanel {
 		}, (int) (1000 / FRAME_RATE), (int) (1000 / FRAME_RATE));
 	}
 
-	private void stop() {
+	public void stop() {
+		startOrStop = true;
 		control.setText("start");
 		timer.cancel();
 		wav.stop();
 	}
 
-	public void setFrame(int frame) {
+	private void setFrame(int frame) {
 		rgb.play(frame);
-		frameDisplay.setText("frame: " + String.format("%04d", frame + 1));
 		if (!sliderSetValue) {
 			sliderSetValue = true;
 			slider.setValue(frame);
@@ -78,13 +75,18 @@ public class TimeControl extends JPanel {
 		info.setFrame(frame);
 	}
 
-	public TimeControl(RGBPlayer rgb, WAVPlayer wav, LinkInfoMap map, DisplayInfo info) {
+	public void set(int frame) {
+		this.frame = frame;
+		wav.set((long) ((long) frame * 1000000L / (long) FRAME_RATE));
+		setFrame(frame);
+	}
+
+	public TimeControl(RGBPlayer rgb, WAVPlayer wav, DisplayInfo info) {
 		this.wav = wav;
 		this.rgb = rgb;
-		this.map = map;
 		this.info = info;
 
-		setPreferredSize(new Dimension(500, 80));
+		setPreferredSize(new Dimension(352, 60));
 		setLayout(null);
 
 		slider.setPaintTicks(true);
@@ -111,12 +113,10 @@ public class TimeControl extends JPanel {
 		add(control);
 		control.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				startOrStop = !startOrStop;
-				if (startOrStop) {
+				if (startOrStop)
 					play();
-				} else {
+				else
 					stop();
-				}
 			}
 		});
 
@@ -147,17 +147,17 @@ public class TimeControl extends JPanel {
 		hide.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				hideOrShow = !hideOrShow;
+				rgb.setHideOrShow(hideOrShow);
 				if (hideOrShow) {
-					hide.setText("show");
-				} else {
 					hide.setText("hide");
+					System.out.println("Showing hyperlinks.");
+				} else {
+					hide.setText("show");
+					System.out.println("Hiding hyperlinks.");
 				}
+				setFrame(frame);
 			}
 		});
-
-		frameDisplay.setBounds(0, 60, 82, 30);
-		frameDisplay.setPreferredSize(new Dimension(82, 30));
-		add(frameDisplay);
 	}
 
 	public int getFrameNum() {
