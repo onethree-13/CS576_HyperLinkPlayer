@@ -6,8 +6,6 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -31,6 +29,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.DefaultListModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +42,7 @@ import CS576.utils.AuthorPlayerEventListener;
 import CS576.utils.ImagePlayer;
 import CS576.utils.LinkInfoVO;
 
-public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener {
+public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener, ChangeListener {
 
     private static final String FILE_EXTENSION = "json";
 
@@ -140,9 +142,9 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         spinnerWidth = new JSpinner();
         spinnerHeight = new JSpinner();
         
-        JLabel lblUpdateBoxBounding = new JLabel("Update Box Bounding :");
+        JLabel lblUpdateBoxBounding = new JLabel("Update Selected Range :");
         lblUpdateBoxBounding.setHorizontalAlignment(SwingConstants.RIGHT);
-        lblUpdateBoxBounding.setBounds(430, 215, 145, 16);
+        lblUpdateBoxBounding.setBounds(430, 215, 155, 16);
         contentPane.add(lblUpdateBoxBounding);
         
         btnUpdate = new JButton();
@@ -215,21 +217,26 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         contentPane.add(btnSaveFile);
         
         primaryPlayer.setBounds(50, 125, ImagePlayer.PANEL_DEFAULT_WIDTH, ImagePlayer.PANEL_DEFAULT_HEIGHT);
+        primaryPlayer.setAuthorPlayerEventListener(this);
         contentPane.add(primaryPlayer);
 
         secondaryPlayer.setBounds(685, 125, ImagePlayer.PANEL_DEFAULT_WIDTH, ImagePlayer.PANEL_DEFAULT_HEIGHT);
         contentPane.add(secondaryPlayer);
         
         spinnerX.setBounds(445, 150, 75, 26);
+        spinnerX.addChangeListener(this); 
         contentPane.add(spinnerX);
         
         spinnerY.setBounds(445, 180, 75, 26);
+        spinnerY.addChangeListener(this); 
         contentPane.add(spinnerY);
         
         spinnerWidth.setBounds(590, 150, 75, 26);
+        spinnerWidth.addChangeListener(this); 
         contentPane.add(spinnerWidth);
         
         spinnerHeight.setBounds(590, 180, 75, 26);
+        spinnerHeight.addChangeListener(this); 
         contentPane.add(spinnerHeight);
         
         btnUpdate.setText("Update");
@@ -276,7 +283,14 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                 
                 if (JFileChooser.APPROVE_OPTION == fc.showOpenDialog(contentPane)) {
                     try {
-                        primaryPlayer.loadImages(fc.getSelectedFile().toString());
+                        int nbFrames = primaryPlayer.loadImages(fc.getSelectedFile().toString());
+                        
+                        SpinnerNumberModel modelFrom = new SpinnerNumberModel(1, 1, nbFrames, 1);
+                        spinnerFrom.setModel(modelFrom);
+
+                        SpinnerNumberModel modelTo = new SpinnerNumberModel(1, 1, nbFrames, 1);
+                        spinnerTo.setModel(modelTo);
+
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         System.out.println(ex.getMessage());
@@ -293,13 +307,10 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 
                 if (JFileChooser.APPROVE_OPTION == fc.showOpenDialog(contentPane)) {
                     try {
-                        int nbFrams = secondaryPlayer.loadImages(fc.getSelectedFile().toString());
+                        int nbFrames = secondaryPlayer.loadImages(fc.getSelectedFile().toString());
                         
-                        SpinnerNumberModel modelFrom = new SpinnerNumberModel(1, 1, nbFrams, 1);
-                        spinnerFrom.setModel(modelFrom);
-
-                        SpinnerNumberModel modelTo = new SpinnerNumberModel(1, 1, nbFrams, 1);
-                        spinnerTo.setModel(modelTo);
+                        SpinnerNumberModel modelFrom = new SpinnerNumberModel(1, 1, nbFrames, 1);
+                        spinnerFromSecondary.setModel(modelFrom);
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         System.out.println(ex.getMessage());
@@ -322,8 +333,8 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     return;
                 }
 
-                int trackingFrom = (Integer)spinnerFrom.getValue();
-                int trackingTo = (Integer)spinnerTo.getValue();
+                int trackingFrom = (Integer)spinnerFrom.getValue() - 1;
+                int trackingTo = (Integer)spinnerTo.getValue() - 1;
 
                 if (0 == trackingFrom && 0 == trackingTo) {
                     trackingTo = primaryPlayer.getTotalFrameCnt() - 1;
@@ -344,12 +355,28 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                 try {
                     DefaultListModel<String> dlm = (DefaultListModel<String>)list.getModel();
                     dlm.addElement(linkName);
-                    curLinkName = linkName;
+                    list.setSelectedValue(linkName, true);
                 } catch (Exception ev) {
                     JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     linkFrames.remove("linkName");
                 }
 			}
+        });
+        
+        list.addListSelectionListener(new ListSelectionListener() {
+        	public void valueChanged(ListSelectionEvent e) {
+                curLinkName = list.getSelectedValue();
+                HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
+                primaryPlayer.setTrackingFrames(hm);
+
+                try {
+                    primaryPlayer.setTrackingFrames(hm);
+                    primaryPlayer.updateImage();
+                } catch (Exception ev) {
+                    JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    linkFrames.remove("linkName");
+                }
+        	}
         });
         
         btnConnectVideo.addActionListener(new ActionListener() {
@@ -432,6 +459,8 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                                 if (null != in) in.close();
                             } catch (Exception ex) {
                                 System.err.println(ex.getMessage());
+                            } finally {
+                                JOptionPane.showMessageDialog(null, "Saved.", "", JOptionPane.INFORMATION_MESSAGE);
                             }
                         }
                     }
@@ -444,42 +473,66 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
             public void actionPerformed(ActionEvent e) {
                 if (null == curLinkName || "" == curLinkName) return;
                 if (!linkFrames.containsKey(curLinkName)) return;
-                
-                HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
-                if (!hm.containsKey(primaryPlayer.getCurFrameNum())) return;
 
-                Rectangle rect = hm.get(primaryPlayer.getCurFrameNum());
-                rect.x = (int)spinnerX.getValue();
-                rect.y = (int)spinnerY.getValue();
-                rect.width = (int)spinnerWidth.getValue();
-                rect.height = (int)spinnerHeight.getValue();
+                int trackingFrom = (Integer)spinnerFrom.getValue() - 1;
+                int trackingTo = (Integer)spinnerTo.getValue() - 1;
+
+                if (trackingTo < trackingFrom) {
+                    JOptionPane.showMessageDialog(null, "The starting frame of tracking section should be less than end point.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (primaryPlayer.getCurFrameNum() < trackingFrom) {
+                    JOptionPane.showMessageDialog(null, "The starting frame of tracking section should be less than selected frame.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (trackingTo < primaryPlayer.getCurFrameNum()) {
+                    JOptionPane.showMessageDialog(null, "The end frame of tracking section should be greater than selected frame.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                int nbUpdated = 0;
+                HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
+                for (int i = trackingFrom; i <= trackingTo; i++) {
+                    if (hm.containsKey(i)) {
+                        Rectangle rect = hm.get(i);
+                        rect.x = (int)spinnerX.getValue();
+                        rect.y = (int)spinnerY.getValue();
+                        rect.width = (int)spinnerWidth.getValue();
+                        rect.height = (int)spinnerHeight.getValue();
+                        
+                        nbUpdated++;
+                    }
+                }
+
+                try {
+                    primaryPlayer.updateImage();
+                    JOptionPane.showMessageDialog(null, nbUpdated + " frames are updated.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println(ex.getMessage());
+                    ex.printStackTrace();
+                }
             }
         });
 
         btnSetFrom.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int nbFrame = primaryPlayer.getCurFrameNum();
-                if (nbFrame < 0) nbFrame = 0;
-
-                spinnerFrom.setValue(nbFrame);
+                spinnerFrom.setValue(primaryPlayer.getCurFrameNum() + 1);
 			}
         });
 
         btnSetTo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int nbFrame = primaryPlayer.getCurFrameNum();
-                if (nbFrame < 0) nbFrame = 0;
-
-                spinnerTo.setValue(nbFrame);
+                spinnerTo.setValue(primaryPlayer.getCurFrameNum() + 1);
 			}
         });
 
         btnAddFrames.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (list.getSelectedIndex() < 0) {
-                    JOptionPane.showMessageDialog(null, "Please select a link on the list.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+                if (null == curLinkName || "" == curLinkName) return;
+                if (!linkFrames.containsKey(curLinkName)) return;
 
                 Rectangle rect = primaryPlayer.getDraggedRectangle();
                 if (0 == rect.width || 0 == rect.height) {
@@ -487,48 +540,54 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     return;
                 }
 
-                int trackingFrom = (Integer)spinnerFrom.getValue();
-                int trackingTo = (Integer)spinnerTo.getValue();
+                int trackingFrom = (Integer)spinnerFrom.getValue() - 1;
+                int trackingTo = (Integer)spinnerTo.getValue() - 1;
 
-                if (0 == trackingFrom && 0 == trackingTo) {
-                    trackingTo = primaryPlayer.getTotalFrameCnt() - 1;
-                }
-
-                if (!(trackingFrom < trackingTo)) {
+                if (trackingTo < trackingFrom) {
                     JOptionPane.showMessageDialog(null, "The starting frame of tracking section should be less than end point.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                String linkName = list.getSelectedValue();
+                if (primaryPlayer.getCurFrameNum() < trackingFrom) {
+                    JOptionPane.showMessageDialog(null, "The starting frame of tracking section should be less than selected frame.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (trackingTo < primaryPlayer.getCurFrameNum()) {
+                    JOptionPane.showMessageDialog(null, "The end frame of tracking section should be greater than selected frame.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo);
-                linkFrames.get(linkName).putAll(hm);
+                linkFrames.get(curLinkName).putAll(hm);
+                primaryPlayer.setTrackingFrames(linkFrames.get(curLinkName));
                 
-                JOptionPane.showMessageDialog(null, hm.size() + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);                
+                try {
+                    primaryPlayer.updateImage();
+                    JOptionPane.showMessageDialog(null, hm.size() + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println(ex.getMessage());
+                    ex.printStackTrace();
+                }
             }
         });
 
         btnRemoveFrames.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (list.getSelectedIndex() < 0) {
-                    JOptionPane.showMessageDialog(null, "Please select a link on the list.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+                if (null == curLinkName || "" == curLinkName) return;
+                if (!linkFrames.containsKey(curLinkName)) return;
+                
+                int trackingFrom = (Integer)spinnerFrom.getValue() - 1;
+                int trackingTo = (Integer)spinnerTo.getValue() - 1;
 
-                int trackingFrom = (Integer)spinnerFrom.getValue();
-                int trackingTo = (Integer)spinnerTo.getValue();
-
-                if (0 == trackingFrom && 0 == trackingTo) {
-                    trackingTo = primaryPlayer.getTotalFrameCnt() - 1;
-                }
-
-                if (!(trackingFrom < trackingTo)) {
+                if (trackingTo < trackingFrom) {
                     JOptionPane.showMessageDialog(null, "The starting frame of tracking section should be less than end point.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 int nbRemoved = 0;
-                String linkName = list.getSelectedValue();
-                HashMap<Integer, Rectangle> hm = linkFrames.get(linkName);
+                HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
                 for (int i = trackingFrom; i <= trackingTo; i++) {
                     if (hm.containsKey(i)) {
                         hm.remove(i);
@@ -536,7 +595,15 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     }
                 }
 
-                JOptionPane.showMessageDialog(null, nbRemoved + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                try {
+                    primaryPlayer.setTrackingFrames(hm);
+                    primaryPlayer.updateImage();
+                    JOptionPane.showMessageDialog(null, nbRemoved + " frames are removed.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println(ex.getMessage());
+                    ex.printStackTrace();
+                }
             }
         });
 
@@ -579,8 +646,12 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 	}
     
     @Override
-	public void frameChanged(int nbFrame, BufferedImage image) {        
+	public void frameChanged(int nbFrame, BufferedImage image) {
+        if (null == curLinkName || "" == curLinkName) return;
+
         HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
+        curLinkName = null; // To avoid repeated drawing image from stateChanged()
+        
         if (hm.containsKey(nbFrame)) {
             Rectangle rect = hm.get(nbFrame);
 
@@ -594,7 +665,38 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
             spinnerWidth.setValue(0);
             spinnerHeight.setValue(0);
         }
-	}
+
+        curLinkName = list.getSelectedValue();
+    }
+    
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        if (primaryPlayer.isPlaying()) return;
+        if (null == curLinkName || "" == curLinkName) return;
+        if (!linkFrames.containsKey(curLinkName)) return;
+        
+        HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
+        if (!hm.containsKey(primaryPlayer.getCurFrameNum())) return;
+
+        Rectangle rect = hm.get(primaryPlayer.getCurFrameNum());
+        if ((JSpinner)e.getSource() == spinnerX) {
+            rect.x = (int)spinnerX.getValue();
+        } else if ((JSpinner)e.getSource() == spinnerY) {
+            rect.y = (int)spinnerY.getValue();
+        } else if ((JSpinner)e.getSource() == spinnerWidth) {
+            rect.width = (int)spinnerWidth.getValue();
+        } else if ((JSpinner)e.getSource() == spinnerHeight) {
+            rect.height = (int)spinnerHeight.getValue();
+        }
+
+        try {
+            primaryPlayer.updateImage();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
 	
 	/**
 	 * Launch the application.

@@ -131,6 +131,7 @@ public class ImagePlayer extends JPanel implements ChangeListener {
                 if (bPlayed) return;
 
                 bPlayed = true;
+                nbCurFrame = slider.getValue();
                 
                 // Runs outside of the Swing UI thread
                 new Thread(new Runnable() {
@@ -190,8 +191,7 @@ public class ImagePlayer extends JPanel implements ChangeListener {
             try {
                 nbCurFrame = slider.getValue();
                 lblFrameStr.setText((nbCurFrame + 1) + " th / " + frameCtl.getTotalFrameCnt() + " Total");
-                BufferedImage image = frameCtl.getFrameImage(nbCurFrame, panel.getWidth(), panel.getHeight());
-                panel.setImage(image);
+                setFramePos(nbCurFrame);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.out.println(ex.getMessage());
@@ -208,9 +208,6 @@ public class ImagePlayer extends JPanel implements ChangeListener {
         try {
             frameCtl = new FrameController(pathName); 
             nbTotalFrame = frameCtl.getTotalFrameCnt();
-            BufferedImage image = frameCtl.getFrameImage(0, panel.getWidth(), panel.getHeight());
-
-            panel.setImage(image);
 
             slider.setMinimum(0);
             slider.setMaximum(nbTotalFrame - 1);
@@ -242,7 +239,7 @@ public class ImagePlayer extends JPanel implements ChangeListener {
     }
 
     public int getCurFrameNum() {
-        return frameCtl.getCurFrameNum();
+        return slider.getValue();
     }
 
     public int getTotalFrameCnt() {
@@ -269,7 +266,15 @@ public class ImagePlayer extends JPanel implements ChangeListener {
     }
 
     public void updateImage() throws Exception {
-        BufferedImage image = frameCtl.getFrameImage(nbCurFrame, panel.getWidth(), panel.getHeight());
+        setFramePos(slider.getValue());
+    }
+
+    public void setFramePos(int nbFrame) throws Exception {
+        BufferedImage image = frameCtl.getFrameImage(nbFrame, panel.getWidth(), panel.getHeight());
         panel.setImage(image);
+    }
+
+    public boolean isPlaying() {
+        return bPlayed;
     }
 }

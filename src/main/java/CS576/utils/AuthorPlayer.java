@@ -23,7 +23,7 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
     
     private AuthorPlayerEventListener listener;
 
-    private HashMap<Integer, Rectangle> hm;
+    private HashMap<Integer, Rectangle> hmTracking;
     
     /**
 	 * Create the panel.
@@ -71,38 +71,45 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
             if (!isLoaded()) return;
 
             try {
-                Point ptFrom = pt;
-                Point ptTo = new Point(e.getX(), e.getY());
-                
-                if (!bDragged) {
-                    pt.setLocation(e.getX(), e.getY());
-                    bDragged = true;
-                }
-
-                if (ptFrom.x < ptTo.x) {
-                    if (ptFrom.y < ptTo.y) {
-                        rect.setLocation(ptFrom);
-                        rect.setSize(ptTo.x - ptFrom.x, ptTo.y - ptFrom.y);
-                    } else {
-                        rect.setLocation(ptFrom.x, ptTo.y);
-                        rect.setSize(ptTo.x - ptFrom.x, ptFrom.y - ptTo.y);
-                    }
-                } else {
-                    if (ptFrom.y < ptTo.y) {
-                        rect.setLocation(ptTo.x, ptFrom.y);
-                        rect.setSize(ptFrom.x - ptTo.x, ptTo.y - ptFrom.y);
-                    } else {
-                        rect.setLocation(ptTo);
-                        rect.setSize(ptFrom.x - ptTo.x, ptFrom.y - ptTo.y);
-                    }
-                }
+            	do {
+	            	if (null != hmTracking && hmTracking.containsKey(getCurFrameNum())) {
+	            		Rectangle tRect = hmTracking.get(getCurFrameNum());
+	            		if (tRect.x <= e.getX() && e.getX() <= tRect.x + tRect.width && tRect.y <= e.getY() && e.getY() <= tRect.y + tRect.height) {
+	            			tRect.x += (e.getX() - (tRect.x + tRect.width / 2));
+	            			tRect.y += (e.getY() - (tRect.y + tRect.height / 2));
+	            			
+	            			continue;
+	            		}
+	            	}
+	            	
+	                Point ptFrom = pt;
+	                Point ptTo = new Point(e.getX(), e.getY());
+	                
+	                if (!bDragged) {
+	                    pt.setLocation(e.getX(), e.getY());
+	                    bDragged = true;
+	                }
+	
+	                if (ptFrom.x < ptTo.x) {
+	                    if (ptFrom.y < ptTo.y) {
+	                        rect.setLocation(ptFrom);
+	                        rect.setSize(ptTo.x - ptFrom.x, ptTo.y - ptFrom.y);
+	                    } else {
+	                        rect.setLocation(ptFrom.x, ptTo.y);
+	                        rect.setSize(ptTo.x - ptFrom.x, ptFrom.y - ptTo.y);
+	                    }
+	                } else {
+	                    if (ptFrom.y < ptTo.y) {
+	                        rect.setLocation(ptTo.x, ptFrom.y);
+	                        rect.setSize(ptFrom.x - ptTo.x, ptTo.y - ptFrom.y);
+	                    } else {
+	                        rect.setLocation(ptTo);
+	                        rect.setSize(ptFrom.x - ptTo.x, ptFrom.y - ptTo.y);
+	                    }
+	                }
+            	} while (false);
 
                 updateImage();
-                
-                if (null != listener) {
-                	listener.mouseDragged(rect);
-                }
-                
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.out.println(ex.getMessage());
@@ -113,8 +120,8 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
 
     @Override
     public void beforeDrawImage(BufferedImage image) {
-        if (null != hm && hm.containsKey(getCurFrameNum())) {
-            drawRectangle(image, hm.get(getCurFrameNum()), Color.MAGENTA);
+        if (null != hmTracking && hmTracking.containsKey(getCurFrameNum())) {
+            drawRectangle(image, hmTracking.get(getCurFrameNum()), Color.MAGENTA);
         }
         
         drawRectangle(image, rect, Color.cyan);
@@ -143,15 +150,16 @@ public class AuthorPlayer extends ImagePlayer implements MouseMotionListener, Im
         return image;
     }
 
+    public void setTrackingFrames(HashMap<Integer, Rectangle> hm) {
+        this.hmTracking = hm;
+    }
+
     public HashMap<Integer, Rectangle> trackMotion(final Rectangle rect, final int nbFrameFrom, int nbFrameTo) {
         int nbCurFrame = getCurFrameNum();
         HashMap<Integer, Rectangle> hm = trackMotion(rect, nbCurFrame, nbFrameTo, true);
-
         hm.putAll(trackMotion(rect, nbCurFrame, nbFrameFrom, false));
-
         hm.put(nbCurFrame, new Rectangle(rect));
 
-        this.hm = hm;
         this.rect.width = this.rect.height = 0;
 
         return hm;
