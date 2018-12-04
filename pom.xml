@@ -81,6 +81,7 @@
       <!-- HyperLinkPlayer -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <id>HyperLinkPlayer</id>
@@ -101,8 +102,16 @@
               <appendAssemblyId>false</appendAssemblyId>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+
+      <!-- HyperLinkAuthor -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
           <execution>
-            <id>HyperLinkStudio</id>
+            <id>HyperLinkAuthor</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -110,32 +119,13 @@
             <configuration>
               <archive>
                 <manifest>
-                  <mainClass>CS576.finalProject.HyperLinkStudio</mainClass>
+                  <mainClass>CS576.finalProject.HyperLinkAuthor</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
-              <finalName>HyperLinkStudio</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-            </configuration>
-          </execution>
-          <execution>
-            <id>Demo</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>CS576.finalProject.Demo</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>Demo</finalName>
+              <finalName>HyperLinkAuthor</finalName>
               <appendAssemblyId>false</appendAssemblyId>
             </configuration>
           </execution>

@@ -1,13 +1,13 @@
 package CS576.utils;
 
-import org.json.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.text.*;
-import javax.swing.border.LineBorder;
+import java.awt.Dimension;
+import java.io.PrintStream;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.text.DefaultCaret;
 
 /**
  * This class extends from OutputStream to redirect output to a JTextArrea
@@ -43,6 +43,5 @@ public class SystemOutRedirect extends JPanel {
 
 		standardOut = System.out;
 		System.setOut(printStream);
-		// System.setErr(printStream);
 	}
 }
