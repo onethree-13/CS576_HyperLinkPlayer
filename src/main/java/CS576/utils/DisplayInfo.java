@@ -1,14 +1,10 @@
 package CS576.utils;
 
-import org.json.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.text.*;
-import javax.swing.border.LineBorder;
+import java.awt.Dimension;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class DisplayInfo extends JPanel {
 	private JLabel frame = new JLabel("frame: 0000");
