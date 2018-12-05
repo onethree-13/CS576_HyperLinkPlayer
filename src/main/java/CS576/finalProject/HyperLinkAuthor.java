@@ -625,7 +625,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         String srcPathName = primaryPlayer.getPathName();
         
         String linkPathName = secondaryPlayer.getPathName();
-        int nbLinkFrameFrom = (Integer)spinnerFromSecondary.getValue();
+        int nbLinkFrameFrom = secondaryPlayer.getCurFrameNum();
         
         LinkInfoVO linkInfo = new LinkInfoVO();
         linkInfo.setLinkName(linkName);
