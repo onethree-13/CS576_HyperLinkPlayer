@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -291,6 +293,9 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                         SpinnerNumberModel modelTo = new SpinnerNumberModel(1, 1, nbFrames, 1);
                         spinnerTo.setModel(modelTo);
 
+                        linkFrames = new HashMap<String, HashMap<Integer, Rectangle>>();
+                        links = new HashMap<String, LinkInfoVO>();
+                        curLinkName = "";
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         System.out.println(ex.getMessage());
@@ -346,7 +351,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                 }
                 
                 String linkName = JOptionPane.showInputDialog("Link name");
-                if (null == linkName || "" == linkName) return;
+                if (null == linkName || linkName.trim().length() < 1) return;
 
                 HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo);
                 JOptionPane.showMessageDialog(null, hm.size() + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -358,7 +363,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     list.setSelectedValue(linkName, true);
                 } catch (Exception ev) {
                     JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    linkFrames.remove("linkName");
+                    linkFrames.remove(linkName);
                 }
 			}
         });
@@ -374,9 +379,38 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     primaryPlayer.updateImage();
                 } catch (Exception ev) {
                     JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    linkFrames.remove("linkName");
+                    linkFrames.remove(curLinkName);
                 }
         	}
+        });
+
+        list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (2 == e.getClickCount() && -1 < list.getSelectedIndex()) {
+                    String linkName = JOptionPane.showInputDialog("Link Name :", list.getSelectedValue());
+                    if (null == linkName) return;
+                    
+                    if (linkName.trim().length() < 1) {
+                        JOptionPane.showMessageDialog(null, "Link name can't be empty or null string.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    HashMap<Integer, Rectangle> hm = linkFrames.get(list.getSelectedValue());
+                    linkFrames.remove(list.getSelectedValue());
+                    linkFrames.put(linkName, hm);
+
+                    try {
+                        DefaultListModel<String> dlm = (DefaultListModel<String>)list.getModel();
+                        dlm.set(list.getSelectedIndex(), linkName);
+                        list.setSelectedValue(linkName, true);
+                        curLinkName = linkName;
+                    } catch (Exception ev) {
+                        JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        linkFrames.remove(linkName);
+                    }
+                }
+            }
         });
         
         btnConnectVideo.addActionListener(new ActionListener() {
@@ -471,7 +505,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         btnUpdate.addActionListener(new ActionListener() {        
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (null == curLinkName || "" == curLinkName) return;
+                if (null == curLinkName || curLinkName.trim().length() < 1) return;
                 if (!linkFrames.containsKey(curLinkName)) return;
 
                 int trackingFrom = (Integer)spinnerFrom.getValue() - 1;
@@ -531,7 +565,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 
         btnAddFrames.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (null == curLinkName || "" == curLinkName) return;
+                if (null == curLinkName || curLinkName.trim().length() < 1) return;
                 if (!linkFrames.containsKey(curLinkName)) return;
 
                 Rectangle rect = primaryPlayer.getDraggedRectangle();
@@ -575,7 +609,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 
         btnRemoveFrames.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (null == curLinkName || "" == curLinkName) return;
+                if (null == curLinkName || curLinkName.trim().length() < 1) return;
                 if (!linkFrames.containsKey(curLinkName)) return;
                 
                 int trackingFrom = (Integer)spinnerFrom.getValue() - 1;
@@ -647,7 +681,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
     
     @Override
 	public void frameChanged(int nbFrame, BufferedImage image) {
-        if (null == curLinkName || "" == curLinkName) return;
+        if (null == curLinkName || curLinkName.trim().length() < 1) return;
 
         HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
         curLinkName = null; // To avoid repeated drawing image from stateChanged()
@@ -672,7 +706,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
     @Override
     public void stateChanged(ChangeEvent e) {
         if (primaryPlayer.isPlaying()) return;
-        if (null == curLinkName || "" == curLinkName) return;
+        if (null == curLinkName || curLinkName.trim().length() < 1) return;
         if (!linkFrames.containsKey(curLinkName)) return;
         
         HashMap<Integer, Rectangle> hm = linkFrames.get(curLinkName);
