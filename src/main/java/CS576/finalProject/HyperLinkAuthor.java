@@ -293,9 +293,18 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                         SpinnerNumberModel modelTo = new SpinnerNumberModel(1, 1, nbFrames, 1);
                         spinnerTo.setModel(modelTo);
 
+                        list.removeAll();
                         linkFrames = new HashMap<String, HashMap<Integer, Rectangle>>();
                         links = new HashMap<String, LinkInfoVO>();
                         curLinkName = "";
+                        
+                        try {
+                            DefaultListModel<String> dlm = (DefaultListModel<String>)list.getModel();
+                            dlm.clear();                            
+                        } catch (Exception ev) {
+                            JOptionPane.showMessageDialog(null, ev.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                        
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         System.out.println(ex.getMessage());
@@ -434,71 +443,67 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         
         btnSaveFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-                if (0 < links.size()) {
-                    final JFileChooser fc = new JFileChooser();
-                    fc.setAcceptAllFileFilterUsed(false);
-                    
-                    FileNameExtensionFilter filter = new FileNameExtensionFilter(FILE_EXTENSION.toUpperCase()+" (*."+FILE_EXTENSION+")", FILE_EXTENSION);
-                    fc.addChoosableFileFilter(filter);
+				if (links.size() < 1) {
+					JOptionPane.showMessageDialog(null, "Can't find any connected video or hyperlink", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+                
+                InputStream in = null;
+                FileOutputStream fos = null;
+                
+                BufferedInputStream bis = null;
+                BufferedOutputStream bos = null;
 
-                    fc.setCurrentDirectory(new File(System.getProperty("user.dir")));
-                    if (JFileChooser.APPROVE_OPTION == fc.showSaveDialog(contentPane)) {
-                        InputStream in = null;
-                        FileOutputStream fos = null;
-                        
-                        BufferedInputStream bis = null;
-                        BufferedOutputStream bos = null;
-
-                        try {
-                            String fileName = fc.getSelectedFile().toString();
-                            if (!(fileName.toLowerCase().endsWith("."+FILE_EXTENSION))) {
-                                fileName += "."+FILE_EXTENSION;
-                            }
-
-                            File file = new File(fileName);
-                            if (file.exists()) {
-                                if (JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, fileName + " already exists. Do you want to overwrite?", "File exist", JOptionPane.YES_NO_OPTION)) return;
-                            }
-                                
-                            ArrayList<LinkInfoVO> infos = new ArrayList<LinkInfoVO>();
-            
-                            ListModel<String> model = list.getModel();
-                            for (int i = 0; i < model.getSize(); i++) {
-                                model.getElementAt(i);
-                                infos.add(links.get(model.getElementAt(i)));
-                            }
-        
-                            String json = LinkInfoVO.toJson(infos);
-                            
-                            in = new ByteArrayInputStream(json.getBytes("UTF-8"));
-                            fos = new FileOutputStream(file);
-
-                            bis = new BufferedInputStream(in);
-                            bos = new BufferedOutputStream(fos);
-
-                            int nbOfByteRead = 0;
-                            byte[] buf = new byte[1024];
-                            while (-1 != (nbOfByteRead = bis.read(buf, 0, buf.length))) {
-                                bos.write(buf, 0, nbOfByteRead);
-                            }
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                            System.out.println(ex.getMessage());
-                            ex.printStackTrace();
-                        } finally {
-                            try {
-                                if (null != bos) bos.close();
-                                if (null != bis) bis.close();
-                                if (null != fos) fos.close();
-                                if (null != in) in.close();
-                            } catch (Exception ex) {
-                                System.err.println(ex.getMessage());
-                            } finally {
-                                JOptionPane.showMessageDialog(null, "Saved.", "", JOptionPane.INFORMATION_MESSAGE);
-                            }
-                        }
+                try {
+                	String pathName = primaryPlayer.getPathName();
+                	String fileName = pathName.substring(pathName.lastIndexOf(File.separator) + 1) + "." + FILE_EXTENSION;
+                    String destFile = pathName + File.separator + fileName;                            
+                    File file = new File(destFile);
+                    if (file.exists()) {
+                        if (JOptionPane.NO_OPTION == JOptionPane.showConfirmDialog(null, "A link metafile already exists. Do you want to overwrite?", "File exist", JOptionPane.YES_NO_OPTION)) return;
                     }
-                }
+                        
+                    ArrayList<LinkInfoVO> infos = new ArrayList<LinkInfoVO>();
+    
+                    ListModel<String> model = list.getModel();
+                    for (int i = 0; i < model.getSize(); i++) {
+                        if (!links.containsKey(model.getElementAt(i))) {
+                        	throw new Exception("Can't find connected video of " + model.getElementAt(i) + " hyperlink.");
+                        }
+                        
+                        infos.add(links.get(model.getElementAt(i)));
+                    }
+
+                    String json = LinkInfoVO.toJson(infos);
+                    
+                    in = new ByteArrayInputStream(json.getBytes("UTF-8"));
+                    fos = new FileOutputStream(file);
+
+                    bis = new BufferedInputStream(in);
+                    bos = new BufferedOutputStream(fos);
+
+                    int nbOfByteRead = 0;
+                    byte[] buf = new byte[1024];
+                    while (-1 != (nbOfByteRead = bis.read(buf, 0, buf.length))) {
+                        bos.write(buf, 0, nbOfByteRead);
+                    }
+                    
+                    JOptionPane.showMessageDialog(null, "Saved.", "", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    System.out.println(ex.getMessage());
+                    ex.printStackTrace();
+                } finally {
+                    try {
+                        if (null != bos) bos.close();
+                        if (null != bis) bis.close();
+                        if (null != fos) fos.close();
+                        if (null != in) in.close();
+                    } catch (Exception ex) {
+                        System.err.println(ex.getMessage());
+                    } finally {
+                    }
+                }   
 			}
         });
 
@@ -653,7 +658,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 
     public LinkInfoVO genLinkInfo(String linkName) throws Exception {
         if (false == linkFrames.containsKey(linkName)) {
-            throw new Exception("Can't find link bounding box from primary video.");
+        	throw new Exception("Can't find any hyperlink named " + linkName + " from primary video.");
         }
 
         String srcPathName = primaryPlayer.getPathName();

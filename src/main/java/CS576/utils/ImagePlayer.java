@@ -212,6 +212,9 @@ public class ImagePlayer extends JPanel implements ChangeListener {
             slider.setMinimum(0);
             slider.setMaximum(nbTotalFrame - 1);
             lblFrameStr.setText("1 th / " + nbTotalFrame + " Total");
+            
+            nbCurFrame = 0;
+            setFramePos(nbCurFrame);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -270,8 +273,12 @@ public class ImagePlayer extends JPanel implements ChangeListener {
     }
 
     public void setFramePos(int nbFrame) throws Exception {
-        BufferedImage image = frameCtl.getFrameImage(nbFrame, panel.getWidth(), panel.getHeight());
-        panel.setImage(image);
+    	if (slider.getValue() != nbFrame) {
+    		slider.setValue(nbFrame);
+    	} else {
+    		BufferedImage image = frameCtl.getFrameImage(nbFrame, panel.getWidth(), panel.getHeight());
+    		panel.setImage(image);    		
+    	}
     }
 
     public boolean isPlaying() {
