@@ -27,7 +27,6 @@ import javax.swing.JSpinner;
 import javax.swing.ListModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.DefaultListModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -43,6 +42,7 @@ import CS576.utils.AuthorPlayer;
 import CS576.utils.AuthorPlayerEventListener;
 import CS576.utils.ImagePlayer;
 import CS576.utils.LinkInfoVO;
+import javax.swing.JCheckBox;
 
 public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener, ChangeListener {
 
@@ -76,6 +76,8 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 
     JButton btnAddFrames;
     JButton btnRemoveFrames;
+
+    JCheckBox chckbxKeepBoundingSize;
 
     JButton btnSetFromSecondary;
     JSpinner spinnerFromSecondary;
@@ -169,6 +171,8 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
 
         btnAddFrames = new JButton();
         btnRemoveFrames = new JButton();
+
+        chckbxKeepBoundingSize = new JCheckBox();
 
         JLabel lblFrameFrom_2 = new JLabel("Frame From");
         lblFrameFrom_2.setHorizontalAlignment(SwingConstants.CENTER);
@@ -267,6 +271,10 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         btnRemoveFrames.setBounds(570, 335, 80, 29);
         contentPane.add(btnRemoveFrames);
 
+        chckbxKeepBoundingSize.setText("Keep Bounding Size");
+        chckbxKeepBoundingSize.setBounds(440, 370, 160, 23);
+        contentPane.add(chckbxKeepBoundingSize);
+
         btnSetFromSecondary.setText("Set");
         btnSetFromSecondary.setBounds(1070, 150, 80, 29);
         contentPane.add(btnSetFromSecondary);
@@ -297,6 +305,8 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                         linkFrames = new HashMap<String, HashMap<Integer, Rectangle>>();
                         links = new HashMap<String, LinkInfoVO>();
                         curLinkName = "";
+
+                        chckbxKeepBoundingSize.setSelected(false);
                         
                         try {
                             DefaultListModel<String> dlm = (DefaultListModel<String>)list.getModel();
@@ -336,7 +346,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
         
         btnCreateNewHyperlink.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-                if (!primaryPlayer.isLoaded()) {
+				if (!primaryPlayer.isLoaded()) {
                     JOptionPane.showMessageDialog(null, "The primary video isn't loaded.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -359,10 +369,20 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     return;
                 }
                 
-                String linkName = JOptionPane.showInputDialog("Link name");
-                if (null == linkName || linkName.trim().length() < 1) return;
+                String linkName = null;
+                while (true) {
+	                linkName = JOptionPane.showInputDialog("Link name");
+	                if (null == linkName || linkName.trim().length() < 1) return;
+	                
+	                if (linkFrames.containsKey(linkName)) {
+	                	JOptionPane.showMessageDialog(null, linkName + " already exists. Choose other name.", "Error", JOptionPane.ERROR_MESSAGE);
+	                	continue;
+	                }
+	                
+	                break;
+                }
 
-                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo);
+                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo, chckbxKeepBoundingSize.isSelected());
                 JOptionPane.showMessageDialog(null, hm.size() + " frames are detected.", "Info", JOptionPane.INFORMATION_MESSAGE);
                 linkFrames.put(linkName, hm);
                 
@@ -597,7 +617,7 @@ public class HyperLinkAuthor extends JFrame implements AuthorPlayerEventListener
                     return;
                 }
 
-                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo);
+                HashMap<Integer, Rectangle> hm = primaryPlayer.trackMotion(rect, trackingFrom, trackingTo, chckbxKeepBoundingSize.isSelected());
                 linkFrames.get(curLinkName).putAll(hm);
                 primaryPlayer.setTrackingFrames(linkFrames.get(curLinkName));
                 
